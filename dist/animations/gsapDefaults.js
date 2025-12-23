@@ -1,0 +1,1 @@
+!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("animations/gsapDefaults",[],t):"object"==typeof exports?exports["animations/gsapDefaults"]={}:e["animations/gsapDefaults"]={}}(this,()=>({}));

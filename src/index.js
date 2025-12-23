@@ -1,1 +1,1 @@
-console.log("Hello from globals");
+console.log("Hello from index");

@@ -1,1 +1,4 @@
 node_modules/
+.vscode/
+./src/config/secrets.env
+./dist/config/secrets.env

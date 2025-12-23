@@ -1,0 +1,1 @@
+!function(e,o){"object"==typeof exports&&"object"==typeof module?module.exports=o():"function"==typeof define&&define.amd?define("index",[],o):"object"==typeof exports?exports.index=o():e.index=o()}(this,()=>(console.log("Hello from index"),{}));

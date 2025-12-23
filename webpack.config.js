@@ -10,6 +10,7 @@ module.exports = {
     ["appwrite/client"]: "./src/appwrite/client.js",
     ["appwrite/db"]: "./src/appwrite/db.js",
     ["appwrite/storage"]: "./src/appwrite/storage.js",
+    ["global/globals"]: "./src/global/globals.js",
     ["index"]: "./src/index.js",
     ["pages/dashboard"]: "./src/pages/dashboard.js",
     ["ui/toast"]: "./src/ui/toast.js",

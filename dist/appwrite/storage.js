@@ -1,0 +1,1 @@
+!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("appwrite/storage",[],t):"object"==typeof exports?exports["appwrite/storage"]={}:e["appwrite/storage"]={}}(this,()=>({}));

@@ -1,0 +1,1 @@
+!function(o,e){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("animations/micro",[],e):"object"==typeof exports?exports["animations/micro"]={}:o["animations/micro"]={}}(this,()=>({}));
