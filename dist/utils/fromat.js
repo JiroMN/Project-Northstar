@@ -1,1 +1,0 @@
-!function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("utils/fromat",[],e):"object"==typeof exports?exports["utils/fromat"]={}:t["utils/fromat"]={}}(this,()=>({}));

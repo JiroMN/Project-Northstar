@@ -1,8 +1,31 @@
+export const ERRORS = {
+  codes: {
+    400: "Invalid request. Please check your input.",
+    401: "You are not authorized. Please log in again.",
+    403: "You don't have permission to perform this action.",
+    404: "The requested resource was not found.",
+    409: "This already exists.",
+    429: "Too many requests. Please try again shortly.",
+    500: "Something went wrong on our side. Please try again later.",
+  },
+
+  types: {
+    user_invalid_credentials: "Invalid email address.",
+    user_not_found: "We couldn't find an account with this email address.",
+    user_already_exists: "An account with this email already exists.",
+    general_rate_limit_exceeded:
+      "Too many attempts. Please slow down and try again.",
+    general_unauthorized_scope: "You are not allowed to perform this action.",
+  },
+
+  fallback: "Something went wrong. Please try again.",
+};
+
 export const CONFIG = {
   baseUrl: "https://thebrand-book.webflow.io",
 };
 
-const APPWRITE = {
+export const APPWRITE = {
   endpoint: "https://fra.cloud.appwrite.io/v1",
   projectId: "6940136600382a052352",
 
