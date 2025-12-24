@@ -3,16 +3,17 @@ const path = require("path");
 module.exports = {
   mode: "production", // Minified
   entry: {
-    ["animations/gsapDefaults"]: "./src/animations/gsapDefaults.js",
+    ["animations/global/buttons"]: "./src/animations/global/buttons.js",
+    ["animations/global/gsapDefaults"]:
+      "./src/animations/global/gsapDefaults.js",
     ["animations/micro"]: "./src/animations/micro.js",
     ["animations/page"]: "./src/animations/page.js",
-    ["appwrite/auth"]: "./src/appwrite/auth.js",
-    ["appwrite/client"]: "./src/appwrite/client.js",
-    ["appwrite/db"]: "./src/appwrite/db.js",
-    ["appwrite/storage"]: "./src/appwrite/storage.js",
+    ["config/public"]: "./src/config/public.js",
     ["global/globals"]: "./src/global/globals.js",
     ["index"]: "./src/index.js",
     ["pages/dashboard"]: "./src/pages/dashboard.js",
+    ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
+    ["pages/login/login"]: "./src/pages/login/login.js",
     ["ui/toast"]: "./src/ui/toast.js",
     ["utils/fromat"]: "./src/utils/fromat.js",
   },

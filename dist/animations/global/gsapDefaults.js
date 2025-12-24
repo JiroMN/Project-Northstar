@@ -1,0 +1,1 @@
+!function(e,o){"object"==typeof exports&&"object"==typeof module?module.exports=o():"function"==typeof define&&define.amd?define("animations/global/gsapDefaults",[],o):"object"==typeof exports?exports["animations/global/gsapDefaults"]=o():e["animations/global/gsapDefaults"]=o()}(this,()=>(gsap.defaults({ease:"expo.out",duration:.5,overwrite:!0}),{}));

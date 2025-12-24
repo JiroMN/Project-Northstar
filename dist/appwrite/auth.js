@@ -1,1 +1,0 @@
-!function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("appwrite/auth",[],t):"object"==typeof exports?exports["appwrite/auth"]={}:e["appwrite/auth"]={}}(this,()=>({}));

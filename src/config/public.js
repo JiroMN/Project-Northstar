@@ -1,3 +1,7 @@
+export const CONFIG = {
+  baseUrl: "https://thebrand-book.webflow.io",
+};
+
 const APPWRITE = {
   endpoint: "https://fra.cloud.appwrite.io/v1",
   projectId: "6940136600382a052352",
