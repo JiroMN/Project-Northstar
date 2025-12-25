@@ -14,6 +14,7 @@ module.exports = {
     ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
     ["pages/login"]: "./src/pages/login.js",
     ["ui/toast"]: "./src/ui/toast.js",
+    ["ui/sidebar"]: "./src/ui/sidebar.js",
     ["utils/helpers"]: "./src/utils/helpers.js",
     ["utils/dataBinding"]: "./src/utils/dataBinding.js",
   },

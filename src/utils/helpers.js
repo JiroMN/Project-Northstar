@@ -11,3 +11,15 @@ export function getErrorMessage(error, fallback = ERRORS.fallback) {
     fallback
   );
 }
+
+export function getHexFromVarName(varName, scope = document.documentElement) {
+  if (!varName) return null;
+
+  // Haal '--foo-bar' uit 'var(--foo-bar)'
+  const match = varName.match(/var\((--[^)]+)\)/);
+  const cssVar = match ? match[1] : varName;
+
+  const value = getComputedStyle(scope).getPropertyValue(cssVar).trim();
+
+  return value || null;
+}

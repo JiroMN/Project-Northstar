@@ -1,36 +1,6 @@
-const NS = ".btnHover";
+import { getHexFromVarName } from "../../utils/helpers";
 
-$(".button").each(function () {
-  const $btn = $(this);
-
-  // Prevent duplicate bindings if this file runs more than once
-  $btn.off(NS);
-
-  $btn.on(`mouseenter${NS}`, function () {
-    // Skip hover animation when disabled/loading
-    if ($btn.attr("data-disabled") === "true") return;
-
-    gsap.to($btn, {
-      autoAlpha: 0.65,
-      duration: 0.2,
-      ease: "power1.out",
-      overwrite: "auto",
-    });
-  });
-
-  $btn.on(`mouseleave${NS}`, function () {
-    // If disabled/loading, keep the disabled alpha (setButtonState handles it)
-    if ($btn.attr("data-disabled") === "true") return;
-
-    gsap.to($btn, {
-      autoAlpha: 1,
-      duration: 0.2,
-      ease: "power1.out",
-      overwrite: "auto",
-    });
-  });
-});
-
+// Button Helpers
 export function setButtonState($btn, state, isClickable) {
   // Timeline used only for disabled/loading visual feedback
   const tl = gsap.timeline({ paused: true }).to($btn, {
@@ -71,3 +41,37 @@ export function setButtonState($btn, state, isClickable) {
       break;
   }
 }
+
+// Button Animations
+const NS = ".btnHover";
+
+$(".button").each(function () {
+  const $btn = $(this);
+
+  // Prevent duplicate bindings if this file runs more than once
+  $btn.off(NS);
+
+  $btn.on(`mouseenter${NS}`, function () {
+    // Skip hover animation when disabled/loading
+    if ($btn.attr("data-disabled") === "true") return;
+
+    gsap.to($btn, {
+      autoAlpha: 0.65,
+      duration: 0.2,
+      ease: "power1.out",
+      overwrite: "auto",
+    });
+  });
+
+  $btn.on(`mouseleave${NS}`, function () {
+    // If disabled/loading, keep the disabled alpha (setButtonState handles it)
+    if ($btn.attr("data-disabled") === "true") return;
+
+    gsap.to($btn, {
+      autoAlpha: 1,
+      duration: 0.2,
+      ease: "power1.out",
+      overwrite: "auto",
+    });
+  });
+});
