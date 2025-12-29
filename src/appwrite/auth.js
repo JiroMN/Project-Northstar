@@ -47,10 +47,10 @@ export async function requestMagicUrlToken(email) {
 export async function logOut() {
   try {
     if (await account.deleteSessions()) {
-      console.log("Logged Out");
       return true;
     }
   } catch (err) {
     console.error(err);
+    throw err;
   }
 }

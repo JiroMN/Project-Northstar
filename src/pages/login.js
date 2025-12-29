@@ -24,11 +24,12 @@ if (authUser) {
 
 logInButton.on("click", async function () {
   if ($(this).attr("data-disable") == "true") return;
-  console.log(input.val());
+
   if (!authUser && input.val() !== "") {
     try {
       setButtonState($(this), "loading", false);
       const response = await requestMagicUrlToken(input.val());
+      console.log(response);
       if (response) {
         // Set email adress in feedback
         $("#magicUrlSentTo").text(input.val());
