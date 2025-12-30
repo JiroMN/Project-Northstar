@@ -121,6 +121,24 @@ export const APPWRITE = {
       },
     },
   },
+
+  buckets: {
+    logos: {
+      id: "694400790025690e2c19",
+    },
+    gallery: {
+      id: "694400c1003113933eb3",
+    },
+    vision: {
+      id: "69440036002d5adaef9e",
+    },
+    obituary: {
+      id: "6943ffe2000bd3dbf9c3",
+    },
+    brandbooks: {
+      id: "6953c5e200333444aafc",
+    },
+  },
 };
 
 export default APPWRITE;

@@ -1,5 +1,75 @@
 import { checkAuth } from "../appwrite/auth";
-
-console.log("hello from dashboard");
+import { getHexFromVarName } from "../utils/helpers";
 
 await checkAuth();
+
+// Resources
+$(".resource-card").each((index, elem) => {
+  const $elem = $(elem);
+
+  const originalWidth = parseInt($elem.css("width").replace("px", ""));
+  const targetWidth = originalWidth * 1.05;
+
+  $elem
+    .off("mouseenter.resourceCard")
+    .on("mouseenter.resourceCard", function () {
+      gsap.to($elem, { minWidth: targetWidth });
+    });
+  $elem
+    .off("mouseleave.resourceCard")
+    .on("mouseleave.resourceCard", function () {
+      gsap.to($elem, { minWidth: originalWidth });
+    });
+});
+
+// Visual Resources
+$(".visual-resources-card").each((index, elem) => {
+  const $elem = $(elem);
+  const $backdropShapeContainer = $elem.find(
+    ".visual-resource-backdrop-icon-container"
+  );
+
+  const backdropImage = $elem.css("backgroundImage");
+  const originalBg = getHexFromVarName("var(--background--90)");
+  const targetBg = getHexFromVarName("var(--translucents--bg-100-20)");
+
+  $elem.css("backgroundImage", "none");
+
+  //   Variant Icon init states
+  gsap.set($backdropShapeContainer, {
+    display: "block",
+    autoAlpha: 0,
+    yPercent: 50,
+  });
+
+  $elem
+    .off("mouseenter.visualResource")
+    .on("mouseenter.visualResource", function () {
+      gsap
+        .timeline({
+          onStart: () => $elem.css("backgroundImage", backdropImage),
+        })
+        .add(() => $elem.css("backgroundImage", backdropImage))
+        .to($elem.find(".visual-resources-card-inner-container"), {
+          width: "70%",
+          backgroundColor: targetBg,
+          duration: 0.75,
+        })
+        .to($backdropShapeContainer, { autoAlpha: 1, yPercent: 0 }, "<");
+    });
+
+  $elem
+    .off("mouseleave.visualResource")
+    .on("mouseleave.visualResource", function () {
+      gsap
+        .timeline({
+          onComplete: () => $elem.css("backgroundImage", "none"),
+        })
+        .to($elem.find(".visual-resources-card-inner-container"), {
+          width: "100%",
+          backgroundColor: originalBg,
+          duration: 0.75,
+        })
+        .to($backdropShapeContainer, { autoAlpha: 0, yPercent: 50 }, "<");
+    });
+});

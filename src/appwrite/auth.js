@@ -1,5 +1,5 @@
 import { Query } from "appwrite";
-import { account } from "./client";
+import { account, teams } from "./client";
 import { CONFIG, APPWRITE } from "../config/public";
 import { getCollection } from "./db";
 import { renderToast } from "../ui/toast";
@@ -9,7 +9,7 @@ export async function checkAuth() {
   try {
     const response = await account.get();
     if (response) {
-      renderToast("Logged In!", "Welcome to TheBrand.Book", "positive");
+      renderToast("Logged In!", "Welcome to TheBrand.Book", "positive", 1500);
       return response;
     }
   } catch (err) {
@@ -51,6 +51,17 @@ export async function logOut() {
     }
   } catch (err) {
     console.error(err);
+    throw err;
+  }
+}
+
+export async function getMyTeams() {
+  try {
+    const me = await account.get();
+
+    const response = await teams.list();
+    return { me, team: response.teams };
+  } catch (err) {
     throw err;
   }
 }

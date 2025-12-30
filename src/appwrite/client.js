@@ -1,4 +1,4 @@
-import { Client, Account } from "appwrite";
+import { Client, Account, Teams } from "appwrite";
 import APPWRITE from "../config/public";
 
 export const client = new Client()
@@ -6,3 +6,4 @@ export const client = new Client()
   .setProject(APPWRITE.projectId);
 
 export const account = new Account(client);
+export const teams = new Teams(client);

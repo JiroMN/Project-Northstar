@@ -62,7 +62,7 @@ export function renderToast(heading, body, state, displayDuration = 5000) {
         disappearToRight(warningToast);
       }, displayDuration);
       break;
-    case "annoucement":
+    case "announcement":
       // Appear
       appearFromRight(announcementToast);
       //   Timer

@@ -23,3 +23,13 @@ export function getHexFromVarName(varName, scope = document.documentElement) {
 
   return value || null;
 }
+
+export function formatShortDate(dateString) {
+  const date = new Date(dateString);
+
+  const day = date.getDate();
+  const month = date.toLocaleString("nl-NL", { month: "short" });
+  const year = String(date.getFullYear()).slice(-2);
+
+  return `${day} ${month} '${year}`;
+}
