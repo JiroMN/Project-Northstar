@@ -71,3 +71,75 @@ export async function getContinuityPackageData() {
     throw err;
   }
 }
+export async function getTimeLogs(includeSub = false) {
+  try {
+    let queries = [Query.equal("client_id", await getClientId())];
+    if (includeSub) {
+      queries.push(Query.select(["*", "clientContinuitySubscriptions.*"]));
+    }
+
+    const subsRes = await getCollection(
+      APPWRITE.databases.continuity.id,
+      APPWRITE.databases.continuity.collections.timelogs.id,
+      queries
+    );
+
+    return subsRes;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export async function getContinuityTimeInfo() {
+  try {
+    // Fetch raw data
+    const timelogs = await getTimeLogs();
+    const subscriptionData = await getContinuityPackageData();
+
+    // Shortcut (geen extra call)
+    const packageData =
+      subscriptionData?.documents?.[0]?.continuityPackage ?? null;
+
+    let spentHours = 0;
+    let spentConsultingHours = 0;
+
+    const logs = timelogs?.documents ?? [];
+
+    for (const log of logs) {
+      const hours = parseFloat(log?.hours ?? 0);
+
+      if (log?.isReservedConsultingSessions) {
+        spentConsultingHours += hours;
+      } else {
+        spentHours += hours;
+      }
+    }
+
+    const totalHours = Number(packageData?.total_hours ?? 0);
+    const reservedConsultingHours = Number(
+      packageData?.reserved_consulting_hours ?? 0
+    );
+
+    const totalFreeHours = totalHours - reservedConsultingHours;
+    spentHours - spentConsultingHours;
+
+    return {
+      // Raw data (no duplication)
+      timelogs,
+      subscriptionData,
+
+      // Aggregates
+      spentHours,
+      spentConsultingHours,
+
+      // Derived totals
+      totalHours,
+      reservedConsultingHours,
+      totalFreeHours,
+    };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}

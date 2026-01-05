@@ -1,7 +1,71 @@
 import { checkAuth } from "../appwrite/auth";
+import {
+  getContinuityPackageData,
+  getContinuityTimeInfo,
+  getTimeLogs,
+} from "../appwrite/db";
+import { renderToast } from "../ui/toast";
+import { applyTextBindings } from "../utils/dataBinding";
 import { getHexFromVarName } from "../utils/helpers";
 
 await checkAuth();
+
+// Get continuity hours for in 'hero' and 'actions'
+async function processContinuityInfo() {
+  try {
+    const continuityTimeInfo = await getContinuityTimeInfo();
+
+    const packageData =
+      continuityTimeInfo.subscriptionData.documents[0].continuityPackage;
+
+    const spentHours = continuityTimeInfo.spentHours;
+    const spentConsultingHours = continuityTimeInfo.spentConsultingHours;
+
+    gsap
+      .timeline()
+      .to(".dashboard-hero-continuity-progressbar.reserved", {
+        width: `${
+          (packageData.reserved_consulting_hours / packageData.total_hours) *
+          100
+        }%`,
+      })
+      .to(
+        "#reservedProgress",
+        {
+          width: `${
+            (spentConsultingHours / packageData.reserved_consulting_hours) * 100
+          }%`,
+        },
+        "<50%"
+      )
+      .to(
+        "#freeProgress",
+        {
+          width: `${
+            (spentConsultingHours / packageData.reserved_consulting_hours) * 100
+          }%`,
+        },
+        "<50%"
+      );
+
+    const totalHours = continuityTimeInfo.totalFreeHours;
+
+    applyTextBindings($(".dashboard-hero"), {
+      "hero-package": packageData.name,
+      "spent-hours": spentHours.toString(),
+      "free-hours": totalHours,
+    });
+  } catch (err) {
+    console.error(err);
+    renderToast(
+      "Oops!",
+      "Can't gather your continuity information.",
+      "warning"
+    );
+  }
+}
+
+processContinuityInfo();
 
 // Resources
 $(".resource-card").each((index, elem) => {
@@ -73,3 +137,10 @@ $(".visual-resources-card").each((index, elem) => {
         .to($backdropShapeContainer, { autoAlpha: 0, yPercent: 50 }, "<");
     });
 });
+
+// Actions
+// —— Download Brandbook
+
+// —— Listen to obituary
+
+// —— Set Continuity Hours

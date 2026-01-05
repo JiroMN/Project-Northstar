@@ -30,9 +30,9 @@ export function renderModal(heading, body, cancelText, confirmText, fn) {
   let tl = gsap
     .timeline({
       paused: true,
-      onComplete: () => gsap.set($backdrop, { pointerEvents: "none" }),
+      onComplete: () => gsap.set($backdrop, { pointerEvents: "auto" }),
     })
-    .to($backdrop, { autoAlpha: 1, pointerEvents: "auto" })
+    .to($backdrop, { autoAlpha: 1 })
     .to($modal, { autoAlpha: 1, scale: 1 }, "<0.2");
 
   tl.play();
@@ -46,7 +46,7 @@ export function renderModal(heading, body, cancelText, confirmText, fn) {
     gsap
       .timeline()
       .to($modal, { autoAlpha: 0, scale: 0.95 })
-      .to($backdrop, { autoAlpha: 0, pointerEvents: "auto" }, "<0.2");
+      .to($backdrop, { autoAlpha: 0, pointerEvents: "none" }, "<0.2");
 
     fn?.();
   });
@@ -56,6 +56,6 @@ export function renderModal(heading, body, cancelText, confirmText, fn) {
     gsap
       .timeline()
       .to($modal, { autoAlpha: 0, scale: 0.95 })
-      .to($backdrop, { autoAlpha: 0, pointerEvents: "auto" }, "<0.2");
+      .to($backdrop, { autoAlpha: 0, pointerEvents: "none" }, "<0.2");
   });
 }
