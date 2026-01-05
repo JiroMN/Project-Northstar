@@ -71,18 +71,18 @@ processContinuityInfo();
 $(".resource-card").each((index, elem) => {
   const $elem = $(elem);
 
-  const originalWidth = parseInt($elem.css("width").replace("px", ""));
-  const targetWidth = originalWidth * 1.05;
+  const originalStrokeColor = getHexFromVarName("var(--background)");
+  const targetStrokeColor = getHexFromVarName("var(--background--75)");
 
   $elem
     .off("mouseenter.resourceCard")
     .on("mouseenter.resourceCard", function () {
-      gsap.to($elem, { minWidth: targetWidth });
+      gsap.to($elem, { borderColor: targetStrokeColor });
     });
   $elem
     .off("mouseleave.resourceCard")
     .on("mouseleave.resourceCard", function () {
-      gsap.to($elem, { minWidth: originalWidth });
+      gsap.to($elem, { borderColor: originalStrokeColor });
     });
 });
 
