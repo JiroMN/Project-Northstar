@@ -33,3 +33,30 @@ export function formatShortDate(dateString) {
 
   return `${day} ${month} '${year}`;
 }
+
+export function formatFullDate(dateString) {
+  const date = new Date(dateString);
+
+  const day = date.getDate();
+  const month = date.toLocaleString("nl-NL", { month: "long" });
+  const year = String(date.getFullYear());
+
+  return `${day} ${month} ${year}`;
+}
+
+export function daysUntil(date) {
+  if (!date) return null;
+
+  const target = new Date(date);
+  if (Number.isNaN(target.getTime())) return null;
+
+  const now = new Date();
+
+  now.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+
+  const diffMs = target - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+}

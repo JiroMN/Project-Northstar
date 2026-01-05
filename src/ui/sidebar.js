@@ -9,7 +9,7 @@ import { renderModal } from "./modal";
 import { renderToast } from "./toast";
 import { getClientData, getContinuityPackageData } from "../appwrite/db";
 import { applyTextBindings } from "../utils/dataBinding";
-import { getFile } from "../appwrite/storage";
+import { getFilePreview } from "../appwrite/storage";
 
 const sidebarMaxWidth = $(".sidebar").css("width");
 
@@ -169,7 +169,7 @@ async function bindDataToInfoCards() {
   try {
     const response = await getClientData();
     const data = response.client.documents[0];
-    const avatar = await getFile(
+    const avatar = await getFilePreview(
       APPWRITE.buckets.logos.id,
       data.avatar_file_id
     );
@@ -180,6 +180,8 @@ async function bindDataToInfoCards() {
       "client-info-name": data.name,
       "client-info-partner-since": formatShortDate(data.collab_start),
       "client-info-continuity-package": subscriptionData.continuityPackage.name,
+      "client-info-billing-period-start": formatShortDate(data.contract_start),
+      "client-info-billing-period-end": formatShortDate(data.contract_end),
     });
 
     // Set images

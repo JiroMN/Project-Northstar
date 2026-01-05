@@ -11,6 +11,7 @@ module.exports = {
     ["global/globals"]: "./src/global/globals.js",
     ["index"]: "./src/index.js",
     ["pages/dashboard"]: "./src/pages/dashboard.js",
+    ["pages/continuity"]: "./src/pages/continuity.js",
     ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
     ["pages/login"]: "./src/pages/login.js",
     ["ui/toast"]: "./src/ui/toast.js",

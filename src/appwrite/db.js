@@ -5,6 +5,7 @@ import APPWRITE from "../config/public";
 
 const databases = new Databases(client);
 
+// General
 export async function getCollection(databaseId, collectionId, queries) {
   try {
     return await databases.listDocuments(databaseId, collectionId, queries);
@@ -14,6 +15,7 @@ export async function getCollection(databaseId, collectionId, queries) {
   }
 }
 
+// Account
 export async function getClientData() {
   try {
     const myTeamRes = await getMyTeams();
@@ -54,6 +56,7 @@ export async function getClientId() {
   }
 }
 
+// Continuity
 export async function getContinuityPackageData() {
   try {
     const subsRes = await getCollection(
@@ -138,6 +141,57 @@ export async function getContinuityTimeInfo() {
       reservedConsultingHours,
       totalFreeHours,
     };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Brand Story
+export async function getBrandStoryData() {
+  try {
+    const clientId = await getClientId();
+    if (clientId) {
+      const visionRes = await getCollection(
+        APPWRITE.databases.brandStory.id,
+        APPWRITE.databases.brandStory.collections.vision.id
+      );
+      const obituaryRes = await getCollection(
+        APPWRITE.databases.brandStory.id,
+        APPWRITE.databases.brandStory.collections.obituary.id
+      );
+
+      return { vision: visionRes, obituary: obituaryRes };
+    } else {
+      throw { message: "No client ID found." };
+    }
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Brand Essence
+export async function getBrandEssenceData() {
+  try {
+    const clientId = await getClientId();
+    if (clientId) {
+      const cpRes = await getCollection(
+        APPWRITE.databases.brandEssence.id,
+        APPWRITE.databases.brandEssence.collections.corePurpose.id
+      );
+      const osRes = await getCollection(
+        APPWRITE.databases.brandEssence.id,
+        APPWRITE.databases.brandEssence.collections.onliness.id
+      );
+      const tlRes = await getCollection(
+        APPWRITE.databases.brandEssence.id,
+        APPWRITE.databases.brandEssence.brandEssence.trueline.id
+      );
+      return { corePurpose: cpRes, onliness: osRes, trueline: tlRes };
+    } else {
+      throw { message: "No client ID found." };
+    }
   } catch (err) {
     console.error(err);
     throw err;
