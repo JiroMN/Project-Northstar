@@ -1,3 +1,4 @@
+import { checkAuth } from "../appwrite/auth";
 import {
   getClientData,
   getContinuityPackageData,
@@ -11,6 +12,8 @@ import {
   formatFullDayDate,
   isBetweenDates,
 } from "../utils/helpers";
+
+await checkAuth();
 
 let timelogDocs;
 let periodStart;

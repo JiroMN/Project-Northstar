@@ -11,7 +11,7 @@ import { getFileDownload } from "../appwrite/storage";
 import APPWRITE from "../config/public";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
-import { getHexFromVarName } from "../utils/helpers";
+import { daysUntil, getHexFromVarName } from "../utils/helpers";
 import { renderModal } from "../ui/modal";
 
 await checkAuth();
@@ -60,6 +60,16 @@ export async function processContinuityInfo() {
       "hero-package": packageData.name,
       "spent-hours": spentHours.toString(),
       "free-hours": totalHours,
+    });
+
+    const hoursLeft = totalHours - spentHours;
+    const billingPeriodEnd =
+      continuityTimeInfo.subscriptionData.documents[0].billing_period_end_date;
+
+    applyTextBindings($(".action-card-top.continuity"), {
+      "action-card-continuity-hours-left": hoursLeft.toString(),
+      "action-card-continuity-days-left":
+        daysUntil(billingPeriodEnd).toString(),
     });
   } catch (err) {
     console.error(err);

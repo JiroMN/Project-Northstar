@@ -9,7 +9,12 @@ export async function checkAuth() {
   try {
     const response = await account.get();
     if (response) {
-      renderToast("Logged In!", "Welcome to TheBrand.Book", "positive", 1500);
+      renderToast(
+        "Logged In!",
+        "Welcome to TheBrand.Book",
+        "announcement",
+        1500
+      );
       return response;
     }
   } catch (err) {
