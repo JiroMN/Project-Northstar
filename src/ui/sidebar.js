@@ -180,8 +180,11 @@ async function bindDataToInfoCards() {
       "client-info-name": data.name,
       "client-info-partner-since": formatShortDate(data.collab_start),
       "client-info-continuity-package": subscriptionData.continuityPackage.name,
-      "client-info-billing-period-start": formatShortDate(data.contract_start),
-      "client-info-billing-period-end": formatShortDate(data.contract_end),
+      "client-info-contract-period-start": formatShortDate(data.contract_start),
+      "client-info-contract-period-end": formatShortDate(data.contract_end),
+      "client-info-billing-period-end": formatShortDate(
+        subscriptionData.billing_period_end_date
+      ),
     });
 
     // Set images

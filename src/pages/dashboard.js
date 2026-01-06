@@ -90,7 +90,7 @@ async function setResourceData() {
       elem.attr("target", "_blank");
     }
 
-    $(".resource-card").each((index, elem) => {
+    $(".resource-card").each((__, elem) => {
       const variant = $(elem).attr("data-wf--resource-card--variant");
       switch (variant) {
         case "website":
@@ -116,7 +116,7 @@ async function setResourceData() {
 }
 setResourceData();
 
-$(".resource-card").each((index, elem) => {
+$(".resource-card").each((__, elem) => {
   const $elem = $(elem);
 
   const originalStrokeColor = getHexFromVarName("var(--background)");
@@ -188,7 +188,7 @@ $(".visual-resources-card").each((index, elem) => {
 
 // Actions
 // Hover animations
-$(".action-card").each((index, elem) => {
+$(".action-card").each((__, elem) => {
   const $card = $(elem);
   const variant = $card.attr("data-action-card-variant");
 
@@ -377,7 +377,6 @@ const playIcon = obituaryCard.find(".action-card-top-icon.play");
 gsap.set(pauseIcon, { display: "block", autoAlpha: 0 });
 
 obituaryAudio.onended = () => {
-  console.log("Ended");
   gsap
     .timeline({
       onStart: () => {

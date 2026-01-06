@@ -44,6 +44,22 @@ export function formatFullDate(dateString) {
   return `${day} ${month} ${year}`;
 }
 
+export function formatFullDayDate(dateString) {
+  const date = new Date(dateString);
+
+  const base = date.toLocaleDateString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  const yearShort = String(date.getFullYear()).slice(-2);
+
+  const formatted = `${base} '${yearShort}`;
+
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
 export function daysUntil(date) {
   if (!date) return null;
 
@@ -59,4 +75,11 @@ export function daysUntil(date) {
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
   return diffDays;
+}
+
+export function isBetweenDates(date, start, end) {
+  const d = new Date(date).setHours(0, 0, 0, 0);
+  const s = new Date(start).setHours(0, 0, 0, 0);
+  const e = new Date(end).setHours(0, 0, 0, 0);
+  return d >= s && d <= e;
 }
