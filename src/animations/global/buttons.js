@@ -45,7 +45,7 @@ export function setButtonState($btn, state, isClickable) {
 // Button Animations
 const NS = ".btnHover";
 
-$(".button, .button-md").each(function () {
+$(".button, .button-md, .icon-button").each(function () {
   const $btn = $(this);
 
   // Prevent duplicate bindings if this file runs more than once

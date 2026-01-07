@@ -11,11 +11,15 @@ export async function getFile(bucketId, fileId) {
     throw err;
   }
 }
-export async function getFilePreview(bucketId, fileId) {
+export async function getFilePreview(bucketId, fileId, width) {
   try {
-    return storage.getFilePreview(bucketId, fileId);
+    if (!width) {
+      return storage.getFilePreview(bucketId, fileId);
+    }
+
+    return storage.getFilePreview(bucketId, fileId, width);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }

@@ -13,6 +13,7 @@ module.exports = {
     ["pages/dashboard"]: "./src/pages/dashboard.js",
     ["pages/continuity"]: "./src/pages/continuity.js",
     ["pages/colorSystem"]: "./src/pages/colorSystem.js",
+    ["pages/logoSystem"]: "./src/pages/logoSystem.js",
     ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
     ["pages/login"]: "./src/pages/login.js",
     ["ui/toast"]: "./src/ui/toast.js",

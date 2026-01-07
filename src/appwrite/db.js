@@ -1,7 +1,8 @@
-import { Databases, Query } from "appwrite";
+import { AppwriteException, Databases, Query } from "appwrite";
 import { client } from "./client";
 import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
+import { getFile } from "./storage";
 
 const databases = new Databases(client);
 
@@ -192,6 +193,26 @@ export async function getBrandEssenceData() {
     } else {
       throw { message: "No client ID found." };
     }
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+// Logo System
+export async function getLogoSystemData() {
+  try {
+    const dbRes = await getCollection(
+      APPWRITE.databases.logoSystem.id,
+      APPWRITE.databases.logoSystem.collections.sets.id,
+      [
+        Query.equal("client_id", await getClientId()),
+        Query.select(["*", "logoVariants.*"]),
+        Query.orderAsc("sort_order"),
+        // Hoe ook logoVariants te sorteren?
+      ]
+    );
+    return dbRes;
   } catch (err) {
     console.error(err);
     throw err;
