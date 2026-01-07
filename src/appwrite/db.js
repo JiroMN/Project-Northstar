@@ -214,7 +214,25 @@ export async function getLogoSystemData() {
     );
     return dbRes;
   } catch (err) {
-    console.error(err);
+    throw err;
+  }
+}
+
+// Typography System
+export async function getTypographyData() {
+  try {
+    const res = await getCollection(
+      APPWRITE.databases.typographySystem.id,
+      APPWRITE.databases.typographySystem.collections.fonts.id,
+      [
+        Query.equal("client_id", await getClientId()),
+        Query.orderAsc("sort_order"),
+        Query.select(["*", "fontWeights.*"]),
+        Query.select(["*", "typographyRules.*"]),
+      ]
+    );
+    return res;
+  } catch (err) {
     throw err;
   }
 }
