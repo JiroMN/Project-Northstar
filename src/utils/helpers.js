@@ -233,3 +233,77 @@ export async function copyToClipboard(string, positiveFeedbackMessage) {
     renderToast("Mislukt", "Kon niet kopiëren.", "negative");
   }
 }
+
+export function formatPx(value, decimals = 0) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "";
+  return `${num.toFixed(decimals)}px`;
+}
+
+export function formatRem(value, decimals = 3) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return "";
+  // Trim trailing zeros a bit for cleaner output
+  return `${parseFloat(num.toFixed(decimals))}rem`;
+}
+/**
+ * Build a typography scale around a base (1rem) using a factor.
+ * - base is always "base" (1rem)
+ * - 1 step below base is "sm", then "2sm", "3sm", ...
+ * - 1 step above base is "lg", then "xl", then "2xl", "3xl", ...
+ *
+ * @param {Object} params
+ * @param {number} params.basePx - Base pixel size that equals 1rem (e.g. 16)
+ * @param {number} params.factor - Multiplication factor per step (e.g. 1.414)
+ * @param {number} [params.stepsUp=6] - Steps above base (lg, xl, 2xl...)
+ * @param {number} [params.stepsDown=4] - Steps below base (sm, 2sm...)
+ * @returns {Array<{label:string, step:number, px:number, rem:number}>}
+ */
+
+export function buildTypographyScale({
+  basePx,
+  factor,
+  stepsUp = 6,
+  stepsDown = 4,
+}) {
+  const safeBasePx = Number(basePx);
+  const safeFactor = Number(factor);
+
+  if (!Number.isFinite(safeBasePx) || safeBasePx <= 0) {
+    throw new Error(`Invalid basePx: ${basePx}`);
+  }
+  if (!Number.isFinite(safeFactor) || safeFactor <= 0) {
+    throw new Error(`Invalid factor: ${factor}`);
+  }
+
+  const steps = [];
+
+  // Steps below base: sm, 2sm, 3sm, ...
+  for (let n = stepsDown; n >= 1; n--) {
+    const rem = 1 / Math.pow(safeFactor, n);
+    const px = rem * safeBasePx;
+
+    const label = n === 1 ? "sm" : `${n}sm`;
+    steps.push({ label, step: -n, px, rem });
+  }
+
+  // Base
+  steps.push({ label: "base", step: 0, px: safeBasePx, rem: 1 });
+
+  // Steps above base: lg, xl, 2xl, 3xl, ...
+  for (let n = 1; n <= stepsUp; n++) {
+    const rem = Math.pow(safeFactor, n);
+    const px = rem * safeBasePx;
+
+    let label;
+    if (n === 1) label = "lg";
+    else if (n === 2) label = "xl";
+    else label = `${n - 1}xl`;
+
+    steps.push({ label, step: n, px, rem });
+  }
+
+  steps.sort((a, b) => b.rem - a.rem);
+
+  return steps;
+}

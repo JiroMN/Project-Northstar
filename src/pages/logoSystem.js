@@ -1,6 +1,11 @@
 import { Query } from "appwrite";
 import { checkAuth } from "../appwrite/auth";
-import { getClientId, getCollection, getLogoSystemData } from "../appwrite/db";
+import {
+  gatherGoogleDriveURL,
+  getClientId,
+  getCollection,
+  getLogoSystemData,
+} from "../appwrite/db";
 import { getFileDownload, getFilePreview } from "../appwrite/storage";
 import APPWRITE from "../config/public";
 import { renderToast } from "../ui/toast";
@@ -236,27 +241,14 @@ $(".logo-system-variant-showcase-action-wrapper").each((__, elem) => {
   });
 });
 
-let googleDriveURL;
-
-async function gatherGoogleDriveURL() {
-  try {
-    const clientId = await getClientId();
-    const resources = await getCollection(
-      APPWRITE.databases.general.id,
-      APPWRITE.databases.general.collections.resources.id,
-      [Query.equal("client_id", clientId)]
-    );
-    googleDriveURL = resources.documents[0].googledrive_url;
-  } catch (err) {
-    console.error(err);
-    renderToast("Oeps!", getErrorMessage(err), "Negative");
-  }
-}
-
-await gatherGoogleDriveURL();
+const googleDriveURL = await gatherGoogleDriveURL();
 
 $("#downloadAllLogos")
   .off("click.downloadLogos")
   .on("click.downloadLogos", async function () {
-    window.open(googleDriveURL, "_blank");
+    try {
+      window.open(googleDriveURL, "_blank");
+    } catch (err) {
+      renderToast("Oeps!", getErrorMessage(err), "Negative");
+    }
   });

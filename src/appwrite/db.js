@@ -16,6 +16,22 @@ export async function getCollection(databaseId, collectionId, queries) {
   }
 }
 
+// Resources
+export async function gatherGoogleDriveURL() {
+  try {
+    const clientId = await getClientId();
+    const resources = await getCollection(
+      APPWRITE.databases.general.id,
+      APPWRITE.databases.general.collections.resources.id,
+      [Query.equal("client_id", clientId)]
+    );
+    return resources.documents[0].googledrive_url;
+    // TODO: Navigating to specific folder
+  } catch (err) {
+    throw err;
+  }
+}
+
 // Account
 export async function getClientData() {
   try {
@@ -219,7 +235,7 @@ export async function getLogoSystemData() {
 }
 
 // Typography System
-export async function getTypographyData() {
+export async function getTypographyFontData() {
   try {
     const res = await getCollection(
       APPWRITE.databases.typographySystem.id,
@@ -229,6 +245,22 @@ export async function getTypographyData() {
         Query.orderAsc("sort_order"),
         Query.select(["*", "fontWeights.*"]),
         Query.select(["*", "typographyRules.*"]),
+      ]
+    );
+    return res;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getTypographyScaleData() {
+  try {
+    const res = await getCollection(
+      APPWRITE.databases.typographySystem.id,
+      APPWRITE.databases.typographySystem.collections.clientTypographyScale.id,
+      [
+        Query.equal("client_id", await getClientId()),
+        Query.select(["*", "typographyScale.*"]),
       ]
     );
     return res;

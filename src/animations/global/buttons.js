@@ -75,3 +75,31 @@ $(".button, .button-md, .icon-button").each(function () {
     });
   });
 });
+
+// Page Tabs
+$(".page-selector-item")
+  .off("click.clickTab")
+  .on("click.clickTab", function () {
+    const elem = $(this);
+    const siblings = elem.siblings();
+
+    const isCurrentlySelected = elem.attr("data-is-selected-page") === "true";
+
+    if (!isCurrentlySelected) {
+      const targetTabId = elem.attr("data-related-content-id");
+
+      // Handle tabs styling
+      elem.addClass("active");
+      elem.attr("data-is-selected-page", "true");
+      siblings.removeClass("active");
+      siblings.attr("data-is-selected-page", "false");
+
+      // Change page
+      $(targetTabId).show();
+
+      siblings.each((__, sibling) => {
+        const siblingChangeToId = $(sibling).attr("data-related-content-id");
+        $(siblingChangeToId).hide();
+      });
+    }
+  });
