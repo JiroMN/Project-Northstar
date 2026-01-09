@@ -1,10 +1,10 @@
-import { getAspectRatioUtilityClass } from "@mui/joy";
 import { checkAuth } from "../appwrite/auth";
 import {
   gatherGoogleDriveURL,
   getTypographyFontData,
   getTypographyScaleData,
 } from "../appwrite/db";
+import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import {
@@ -13,7 +13,6 @@ import {
   formatPx,
   formatRem,
   getErrorMessage,
-  getHexFromVarName,
 } from "../utils/helpers";
 
 await checkAuth();
@@ -40,7 +39,7 @@ async function gatherTypographyFontData() {
   }
 }
 
-const typographyFontData = await gatherTypographyFontData();
+const typographyFontData = await withLoader(gatherTypographyFontData());
 
 function renderFonts() {
   const $cardTemplate = $("#typographyCardTemplate");
@@ -132,7 +131,7 @@ async function gatherTypographyScaleData() {
     console.error(err);
   }
 }
-const typographyScaleData = await gatherTypographyScaleData();
+const typographyScaleData = await withLoader(gatherTypographyScaleData());
 
 function renderScaleSteps() {
   const scaleStepTemplate = $("#typographyScaleStepTemplate");

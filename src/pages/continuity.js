@@ -5,6 +5,7 @@ import {
   getContinuityTimeInfo,
   getTimeLogs,
 } from "../appwrite/db";
+import { withLoader } from "../ui/loader";
 import { applyTextBindings } from "../utils/dataBinding";
 import {
   daysUntil,
@@ -80,7 +81,7 @@ async function processContinuityInfo() {
     console.error(err);
   }
 }
-await processContinuityInfo();
+await withLoader(processContinuityInfo());
 
 // Timelogs
 function getGroupDate(iso) {

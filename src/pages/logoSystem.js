@@ -1,13 +1,8 @@
-import { Query } from "appwrite";
 import { checkAuth } from "../appwrite/auth";
-import {
-  gatherGoogleDriveURL,
-  getClientId,
-  getCollection,
-  getLogoSystemData,
-} from "../appwrite/db";
+import { gatherGoogleDriveURL, getLogoSystemData } from "../appwrite/db";
 import { getFileDownload, getFilePreview } from "../appwrite/storage";
 import APPWRITE from "../config/public";
+import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import { getErrorMessage } from "../utils/helpers";
@@ -37,7 +32,7 @@ async function processLogoData() {
   }
 }
 
-const logoData = await processLogoData();
+const logoData = await withLoader(processLogoData());
 
 async function changeToVariant(logoSetId, variantId, logoSetElem) {
   try {

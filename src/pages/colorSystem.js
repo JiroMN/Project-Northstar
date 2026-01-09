@@ -8,6 +8,7 @@ import {
   formatColorFormats,
   isLightHexColor,
 } from "../utils/helpers";
+import { withLoader } from "../ui/loader";
 
 await checkAuth();
 
@@ -34,7 +35,7 @@ async function gatherColorInformation() {
   }
 }
 
-let colorData = await gatherColorInformation();
+let colorData = await withLoader(gatherColorInformation());
 
 function convertColorCodes() {
   $(colorData).each((__, color) => {
