@@ -11,7 +11,7 @@ import { getFileDownload } from "../appwrite/storage";
 import APPWRITE from "../config/public";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
-import { daysUntil, getHexFromVarName } from "../utils/helpers";
+import { daysUntil, getCssValueFromVarName } from "../utils/helpers";
 import { renderModal } from "../ui/modal";
 
 await checkAuth();
@@ -129,8 +129,8 @@ setResourceData();
 $(".resource-card").each((__, elem) => {
   const $elem = $(elem);
 
-  const originalStrokeColor = getHexFromVarName("var(--background)");
-  const targetStrokeColor = getHexFromVarName("var(--background--75)");
+  const originalStrokeColor = getCssValueFromVarName("var(--background)");
+  const targetStrokeColor = getCssValueFromVarName("var(--background--75)");
 
   $elem
     .off("mouseenter.resourceCard")
@@ -152,8 +152,8 @@ $(".visual-resources-card").each((index, elem) => {
   );
 
   const backdropImage = $elem.css("backgroundImage");
-  const originalBg = getHexFromVarName("var(--background--90)");
-  const targetBg = getHexFromVarName("var(--translucents--bg-100-20)");
+  const originalBg = getCssValueFromVarName("var(--background--90)");
+  const targetBg = getCssValueFromVarName("var(--translucents--bg-100-20)");
 
   $elem.css("backgroundImage", "none");
 
@@ -223,20 +223,20 @@ $(".action-card").each((__, elem) => {
 
   switch (variant) {
     case "download-brandbook":
-      targetBgColor = getHexFromVarName("var(--foreground)");
-      targetFgColor = getHexFromVarName("var(--background)");
-      targetBgToneColor = getHexFromVarName(
+      targetBgColor = getCssValueFromVarName("var(--foreground)");
+      targetFgColor = getCssValueFromVarName("var(--background)");
+      targetBgToneColor = getCssValueFromVarName(
         "var(--_all-colors---light--backgroundtones--50)"
       );
       break;
     case "obituary":
-      targetBgColor = getHexFromVarName(
+      targetBgColor = getCssValueFromVarName(
         "var(--_all-colors---service-color--strategy--background)"
       );
-      targetFgColor = getHexFromVarName(
+      targetFgColor = getCssValueFromVarName(
         "var(--_all-colors---service-color--strategy--foreground)"
       );
-      targetBgToneColor = getHexFromVarName(
+      targetBgToneColor = getCssValueFromVarName(
         "var(--_all-colors---service-color--strategy--background)"
       );
       break;
@@ -246,13 +246,13 @@ $(".action-card").each((__, elem) => {
         text: $card.find("[data-bind='action-card-continuity-days-left']"),
       };
       // (Top-foreground text is added for continuity-hours)
-      targetBgColor = getHexFromVarName(
+      targetBgColor = getCssValueFromVarName(
         "var(--_all-colors---service-color--continuity--background)"
       );
-      targetFgColor = getHexFromVarName(
+      targetFgColor = getCssValueFromVarName(
         "var(--_all-colors---service-color--continuity--foreground)"
       );
-      targetBgToneColor = getHexFromVarName(
+      targetBgToneColor = getCssValueFromVarName(
         "var(--_all-colors---service-color--continuity--background)"
       );
       break;

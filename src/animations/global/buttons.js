@@ -1,4 +1,4 @@
-import { getHexFromVarName } from "../../utils/helpers";
+import { getCssValueFromVarName } from "../../utils/helpers";
 
 // Button Helpers
 export function setButtonState($btn, state, isClickable) {

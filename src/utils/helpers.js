@@ -13,7 +13,10 @@ export function getErrorMessage(error, fallback = ERRORS.fallback) {
   );
 }
 
-export function getHexFromVarName(varName, scope = document.documentElement) {
+export function getCssValueFromVarName(
+  varName,
+  scope = document.documentElement
+) {
   if (!varName) return null;
 
   // Haal '--foo-bar' uit 'var(--foo-bar)'

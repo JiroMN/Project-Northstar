@@ -3,7 +3,7 @@ import APPWRITE, { CONFIG } from "../config/public";
 import {
   formatShortDate,
   getErrorMessage,
-  getHexFromVarName,
+  getCssValueFromVarName,
 } from "../utils/helpers";
 import { renderModal } from "./modal";
 import { renderToast } from "./toast";
@@ -14,10 +14,10 @@ import { getFilePreview } from "../appwrite/storage";
 const sidebarMaxWidth = $(".sidebar").css("width");
 
 function setNavButtonState($btn, state) {
-  const targetBgColor = getHexFromVarName(
+  const targetBgColor = getCssValueFromVarName(
     "var(--_all-colors---dark--backgroundtones--80)"
   );
-  const targetFgColor = getHexFromVarName(
+  const targetFgColor = getCssValueFromVarName(
     "var(--_all-colors---dark--foreground)"
   );
 
@@ -236,10 +236,10 @@ const NS = ".btnHover";
 $(".sidebar-nav-button").each((index, elem) => {
   const $btn = $(elem);
 
-  const targetFgColor = getHexFromVarName(
+  const targetFgColor = getCssValueFromVarName(
     "var(--_all-colors---dark--foreground)"
   );
-  const originalFgColor = getHexFromVarName(
+  const originalFgColor = getCssValueFromVarName(
     "var(--_all-colors---dark--foregroundtones--75)"
   );
 
@@ -284,14 +284,16 @@ const hoverDefaults = {
 };
 
 const colors = {
-  targetRegularBg: getHexFromVarName(
+  targetRegularBg: getCssValueFromVarName(
     "var(--_all-colors---dark--backgroundtones--75)"
   ),
-  targetRegularFg: getHexFromVarName("var(--_all-colors---dark--foreground)"),
-  targetLogOutBg: getHexFromVarName(
+  targetRegularFg: getCssValueFromVarName(
+    "var(--_all-colors---dark--foreground)"
+  ),
+  targetLogOutBg: getCssValueFromVarName(
     "var(--_all-colors---feedback--negative--background)"
   ),
-  targetLogOutFg: getHexFromVarName(
+  targetLogOutFg: getCssValueFromVarName(
     "var(--_all-colors---feedback--negative--foreground)"
   ),
 };

@@ -1,8 +1,7 @@
-import { AppwriteException, Databases, Query } from "appwrite";
+import { Databases, Query } from "appwrite";
 import { client } from "./client";
 import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
-import { getFile } from "./storage";
 
 const databases = new Databases(client);
 
@@ -258,12 +257,28 @@ export async function getTypographyScaleData() {
     const res = await getCollection(
       APPWRITE.databases.typographySystem.id,
       APPWRITE.databases.typographySystem.collections.clientTypographyScale.id,
-      [
-        Query.equal("client_id", await getClientId()),
-        Query.select(["*", "typographyScale.*"]),
-      ]
+      [Query.equal("client_id", await getClientId())]
     );
     return res;
+  } catch (err) {
+    throw err;
+  }
+}
+
+// Typography Communication
+
+export async function getTypographyCommuncationData() {
+  try {
+    const examplesRes = await getCollection(
+      APPWRITE.databases.toneOfVoice.id,
+      APPWRITE.databases.toneOfVoice.collections.examplesTraits.id,
+      [Query.select(["*", "toVExample.*"]), Query.select(["*", "toVTraits.*"])]
+    );
+    const traitsRes = await getCollection(
+      APPWRITE.databases.toneOfVoice.id,
+      APPWRITE.databases.toneOfVoice.collections.traits.id
+    );
+    return { traits: traitsRes.documents, examples: examplesRes.documents };
   } catch (err) {
     throw err;
   }
