@@ -81,7 +81,7 @@ async function processContinuityInfo() {
     console.error(err);
   }
 }
-await withLoader(processContinuityInfo());
+await processContinuityInfo();
 
 // Timelogs
 function getGroupDate(iso) {

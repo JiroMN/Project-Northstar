@@ -13,14 +13,13 @@ import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import { daysUntil, getHexFromVarName } from "../utils/helpers";
 import { renderModal } from "../ui/modal";
-import { withLoader } from "../ui/loader";
 
 await checkAuth();
 
 // Get continuity hours for in 'hero' and 'actions'
 export async function processContinuityInfo() {
   try {
-    const continuityTimeInfo = await withLoader(getContinuityTimeInfo());
+    const continuityTimeInfo = await getContinuityTimeInfo();
 
     const packageData =
       continuityTimeInfo.subscriptionData.documents[0].continuityPackage;
@@ -82,7 +81,7 @@ export async function processContinuityInfo() {
   }
 }
 
-processContinuityInfo();
+await processContinuityInfo();
 
 // Resources
 async function setResourceData() {
