@@ -125,7 +125,7 @@ renderExamples();
 function applyRandomBentoWidths({
   selector = ".communication-bento-grid-card",
   baseMinWidth = 300,
-  widthOptions = [420, 480, 560],
+  widthOptions = [420, 500, 580],
   chance = 0.35,
 } = {}) {
   const cards = document.querySelectorAll(selector);

@@ -243,7 +243,7 @@ $(".action-card").each((__, elem) => {
     case "continuity-hours":
       topFgElements = {
         ...topFgElements,
-        text: $card.find("[data-bind='action-card-continuity-days-left']"),
+        text: $card.find(".sm.fg-75"),
       };
       // (Top-foreground text is added for continuity-hours)
       targetBgColor = getCssValueFromVarName(
