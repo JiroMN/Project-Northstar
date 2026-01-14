@@ -21,6 +21,46 @@ let currentPageNumber = 1;
 let albumsData = null;
 let data = null;
 
+// Masonry
+const $grid = $(".gallery-grid");
+let msnry = null;
+
+$grid.prepend('<div class="grid-sizer"></div>');
+
+function initMasonry() {
+  if (msnry) return msnry;
+
+  $grid.masonry({
+    itemSelector: ".gallery-item[data-file-id]",
+    columnWidth: ".grid-sizer",
+    gutter: convertRemToPx(getCssValueFromVarName("var(--_sizing---gap--sm)")),
+    percentPosition: true,
+    transitionDuration: 0,
+  });
+
+  console.log("Initializing Masonry");
+  msnry = $grid.data("masonry");
+  return msnry;
+}
+
+function layoutMasonryAfterRender() {
+  setTimeout(() => {
+    initMasonry();
+
+    // 1) Masonry opnieuw laten scannen
+    $grid.masonry("reloadItems"); // docs: reloadItems recollects all items
+
+    // 2) imagesLoaded: layout na elke image load (aanrader van docs)
+    $grid.imagesLoaded().progress(function () {
+      $grid.masonry("layout"); // docs: layout herpositioneert items
+    });
+
+    // 3) eventueel alvast 1 keer layouten (kan fijn zijn voor placeholders)
+    $grid.masonry("layout");
+  }, 0);
+}
+
+// Database etc.
 async function gatherGalleryInfo(albumId, limit, offset) {
   try {
     const dbRes = await getGalleryData(albumId, limit, offset);
@@ -32,162 +72,7 @@ async function gatherGalleryInfo(albumId, limit, offset) {
   }
 }
 
-// Masonry
-// Helpers
-function afterPaint(cb) {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      cb();
-    });
-  });
-}
-function debugLogs(label = "") {
-  console.log("— DEBUG:", label);
-
-  console.log("items in DOM:", $(".gallery-grid .gallery-item").length);
-  console.log("template exists:", $("#galleryItemTemplate").length);
-  console.log(
-    "items that Masonry sees:",
-    $masonryGrid.data("masonry")?.items?.length
-  );
-  console.log("grid height before:", $(".gallery-grid").height());
-  $masonryGrid.masonry("layout");
-  console.log("grid height after:", $(".gallery-grid").height());
-}
-// Loads Masonry + imagesLoaded from CDN only if they are not already present.
-function loadScriptOnce(src) {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      // If it was already loaded, resolve immediately.
-      if (existing.dataset.loaded === "true") resolve();
-      return;
-    }
-
-    const s = document.createElement("script");
-    s.src = src;
-    s.async = true;
-    s.onload = () => {
-      s.dataset.loaded = "true";
-      resolve();
-    };
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
-
-async function ensureMasonryLoaded() {
-  // If Masonry is already available, do nothing.
-  const hasMasonry =
-    typeof window.Masonry !== "undefined" ||
-    typeof $.fn.masonry !== "undefined";
-  const hasImagesLoaded = typeof $.fn.imagesLoaded !== "undefined";
-
-  const promises = [];
-
-  if (!hasMasonry) {
-    promises.push(
-      loadScriptOnce(
-        "https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"
-      )
-    );
-  }
-
-  if (!hasImagesLoaded) {
-    promises.push(
-      loadScriptOnce(
-        "https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"
-      )
-    );
-  }
-
-  if (promises.length) await Promise.all(promises);
-}
-
-let $masonryGrid = null;
-let masonryInitialized = false;
-
-async function initMasonry() {
-  try {
-    await ensureMasonryLoaded();
-
-    const $grid = $(".gallery-grid");
-    if (!$grid.length) return;
-
-    // Add a sizer element if it doesn't exist yet.
-    if (!$grid.find(".grid-sizer").length) {
-      $grid.prepend('<div class="grid-sizer"></div>');
-    }
-
-    // Ensure items exist before initializing
-    const $items = $grid.find(".gallery-item");
-    if (!$items.length) return;
-
-    // Prefer the jQuery plugin API (works when masonry.pkgd + jQuery are present)
-    if (typeof $.fn.masonry === "function") {
-      $grid.masonry({
-        itemSelector: ".gallery-item.not-template",
-        columnWidth: ".grid-sizer",
-        percentPosition: true,
-        gutter: convertRemToPx(
-          getCssValueFromVarName("var(--_sizing---gap--sm)")
-        ),
-
-        transitionDuration: 0,
-      });
-
-      // Re-layout as images load to prevent gaps/overlap
-      if (typeof $.fn.imagesLoaded === "function") {
-        $grid.imagesLoaded().progress(() => {
-          $grid.masonry("layout");
-        });
-      } else {
-        // Fallback: do a couple of delayed layouts
-        setTimeout(() => $grid.masonry("layout"), 0);
-        setTimeout(() => $grid.masonry("layout"), 250);
-      }
-
-      $masonryGrid = $grid;
-      masonryInitialized = true;
-      return;
-    }
-
-    // Fallback to vanilla Masonry if needed
-    if (typeof window.Masonry !== "undefined") {
-      const msnry = new window.Masonry($grid.get(0), {
-        itemSelector: ".gallery-item.not-template",
-        columnWidth: ".grid-sizer",
-        percentPosition: true,
-        gutter: convertRemToPx(
-          getCssValueFromVarName("var(--_sizing---gap--sm)")
-        ),
-      });
-
-      $masonryGrid = $grid;
-      masonryInitialized = true;
-
-      if (window.imagesLoaded) {
-        window.imagesLoaded($grid.get(0)).on("progress", () => msnry.layout());
-      } else {
-        setTimeout(() => msnry.layout(), 0);
-        setTimeout(() => msnry.layout(), 250);
-      }
-    }
-  } catch (err) {
-    console.error("Failed to initialize Masonry", err);
-  }
-}
-
-function relayoutMasonry() {
-  if (!masonryInitialized || !$masonryGrid) return;
-  if (typeof $.fn.masonry === "function") {
-    $masonryGrid.masonry("layout");
-  }
-}
-
 // Render Albums
-
 function renderAlbums(albums) {
   const $activePageSelector = $("#activePageSelectorTemplate");
   const $inactivePageSelector = $("#inactivePageSelectorTemplate");
@@ -230,27 +115,11 @@ function renderAlbums(albums) {
 function renderGalleryItems(files) {
   const $galleryItemTemplate = $("#galleryItemTemplate");
 
-  let $newItems = $();
-
   $galleryItemTemplate.css("display", "none");
 
   // Remove old gallery items
   const $grid = $(".gallery-grid");
-
-  // Remove old gallery items (Masonry-safe)
-  if (
-    masonryInitialized &&
-    $masonryGrid &&
-    typeof $.fn.masonry === "function"
-  ) {
-    const $oldItems = $grid.find(".gallery-item").not("#galleryItemTemplate");
-    if ($oldItems.length) {
-      $masonryGrid.masonry("remove", $oldItems);
-      $masonryGrid.masonry("layout");
-    }
-  } else {
-    $grid.find(".gallery-item").not("#galleryItemTemplate").remove();
-  }
+  $grid.find(".gallery-item").not("#galleryItemTemplate").remove();
 
   // Render Files
   files.forEach((file) => {
@@ -261,11 +130,13 @@ function renderGalleryItems(files) {
     galleryItemClone.attr("id", "");
     galleryItemClone.attr("data-related-album", file.album.$id);
     galleryItemClone.attr("data-file-id", file.file.$id);
-    galleryItemClone.addClass("not-template");
-    gsap.set(galleryItemClone, { autoAlpha: 0, yPercent: 50 });
+    gsap.set(galleryItemClone, {
+      autoAlpha: 0,
+      yPercent: 0,
+      scale: 0.9,
+      filter: "blur(5px)",
+    });
     galleryItemClone.appendTo(".gallery-grid");
-
-    $newItems = $newItems.add(galleryItemClone);
 
     // Set data-bind Information
     applyTextBindings(galleryItemClone, {
@@ -308,67 +179,18 @@ function renderGalleryItems(files) {
       .attr("data-download-source", file.sources.download);
   });
 
-  // Masonry refresh
-  // Tell masonry what that there are new items
-  if (
-    masonryInitialized &&
-    $masonryGrid &&
-    typeof $.fn.masonry === "function"
-  ) {
-    console.log($newItems);
-    if ($newItems.length) {
-      //   $masonryGrid.masonry("appended", $newItems);
-    }
-  }
   const $renderedItems = $(".gallery-grid .gallery-item").not(
     "#galleryItemTemplate"
   );
 
-  const doLayoutAndAnimate = () => {
-    afterPaint(() => {
-      if (
-        masonryInitialized &&
-        $masonryGrid &&
-        typeof $.fn.masonry === "function"
-      ) {
-        $masonryGrid.masonry("reloadItems");
-        $masonryGrid.masonry("layout");
-      }
-
-      gsap.to($renderedItems, {
-        autoAlpha: 1,
-        yPercent: 0,
-        stagger: 0.05,
-        overwrite: true,
-      });
-    });
-  };
-
-  if (
-    masonryInitialized &&
-    $masonryGrid &&
-    typeof $.fn.imagesLoaded === "function"
-  ) {
-    $masonryGrid.imagesLoaded().progress(() => {
-      $masonryGrid.masonry("layout");
-    });
-
-    $masonryGrid.imagesLoaded().always(() => {
-      doLayoutAndAnimate();
-    });
-  } else {
-    // fallback
-    setTimeout(doLayoutAndAnimate, 0);
-    setTimeout(() => {
-      if (
-        masonryInitialized &&
-        $masonryGrid &&
-        typeof $.fn.masonry === "function"
-      ) {
-        $masonryGrid.masonry("layout");
-      }
-    }, 250);
-  }
+  // Animate rendered items in
+  gsap.timeline().to($renderedItems, {
+    autoAlpha: 1,
+    filter: "blur(0px)",
+    scale: 1,
+    stagger: 0.05,
+    overwrite: true,
+  });
 }
 
 // Inits
@@ -377,10 +199,7 @@ renderAlbums(albumsData.documents);
 
 data = await gatherGalleryInfo(selectedAlbumId, PAGE_SIZE, currentOffset);
 renderGalleryItems(data.files);
-
-await initMasonry();
-
-debugLogs("Init");
+layoutMasonryAfterRender();
 
 $(".page-selector-item").each((__, selector) => {
   const $selector = $(selector);
@@ -402,7 +221,7 @@ $(".page-selector-item").each((__, selector) => {
             currentOffset
           );
           renderGalleryItems(data.files);
-          debugLogs("Album Switch");
+          layoutMasonryAfterRender();
 
           // Update next/prev styling based on new album payload
           const total = Number.isFinite(data.total) ? data.total : null;
@@ -418,11 +237,14 @@ $(".page-selector-item").each((__, selector) => {
             .text()
             .trim();
           applyTextBindings($(".gallery-wrapper"), { "album-name": label });
-
-          afterPaint(() => relayoutMasonry());
         },
       })
-      .to($(".gallery-item"), { autoAlpha: 0, yPercent: -50, stagger: 0.05 });
+      .to($(".gallery-item"), {
+        autoAlpha: 0,
+        filter: "blur(5px)",
+        scale: 0.9,
+        stagger: 0.05,
+      });
   });
 });
 
@@ -571,6 +393,7 @@ async function paginate(isForward) {
 
     data = newPayload;
     renderGalleryItems(newPayload.files);
+    layoutMasonryAfterRender();
 
     // Determine last page using total (best) or fallback
     const total = Number.isFinite(newPayload.total) ? newPayload.total : null;
@@ -618,7 +441,6 @@ $("[data-download-source]").each((__, btn) => {
     .off("click.downloadFromLightbox")
     .on("click.downloadFromLightbox", function () {
       try {
-        console.log("Clicked on dwnld listener");
         window.open($(this).attr("data-download-source"), "_blank");
       } catch (err) {
         renderToast("Oeps!", getErrorMessage(err), "Negative");
