@@ -28,6 +28,20 @@ export function getCssValueFromVarName(
   return value || null;
 }
 
+export function convertRemToPx(remValue) {
+  if (!remValue) return 0;
+
+  // haal 'rem' weg en maak er een number van
+  const rem = parseFloat(remValue.replace("rem", ""));
+  if (!Number.isFinite(rem)) return 0;
+
+  const htmlFontSize = parseFloat(
+    getComputedStyle(document.documentElement).fontSize
+  );
+
+  return rem * htmlFontSize;
+}
+
 export function formatShortDate(dateString) {
   const date = new Date(dateString);
 
@@ -309,4 +323,19 @@ export function buildTypographyScale({
   steps.sort((a, b) => b.rem - a.rem);
 
   return steps;
+}
+
+// Source - https://stackoverflow.com/a
+// Posted by anon, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-01-13, License - CC BY-SA 4.0
+export function formatBytes(bytes, decimals = 2) {
+  if (!+bytes) return "0 Bytes";
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }

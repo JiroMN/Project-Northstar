@@ -1,5 +1,3 @@
-import { getCssValueFromVarName } from "../../utils/helpers";
-
 // Button Helpers
 export function setButtonState($btn, state, isClickable) {
   // Timeline used only for disabled/loading visual feedback
@@ -77,29 +75,35 @@ $(".button, .button-md, .icon-button").each(function () {
 });
 
 // Page Tabs
-$(".page-selector-item")
-  .off("click.clickTab")
-  .on("click.clickTab", function () {
-    const elem = $(this);
-    const siblings = elem.siblings();
+$(document)
+  .off("click.clickTab", ".page-selector-item")
+  .on("click.clickTab", ".page-selector-item", function () {
+    const $elem = $(this);
+    const $siblings = $elem.siblings(".page-selector-item");
 
-    const isCurrentlySelected = elem.attr("data-is-selected-page") === "true";
+    const isCurrentlySelected = $elem.attr("data-is-selected-page") === "true";
+    if (isCurrentlySelected) return;
 
-    if (!isCurrentlySelected) {
-      const targetTabId = elem.attr("data-related-content-id");
+    const targetTabId = $elem.attr("data-related-content-id") || "";
 
-      // Handle tabs styling
-      elem.addClass("active");
-      elem.attr("data-is-selected-page", "true");
-      siblings.removeClass("active");
-      siblings.attr("data-is-selected-page", "false");
+    // Handle tabs styling
+    $elem.addClass("active");
+    $elem.attr("data-is-selected-page", "true");
 
-      // Change page
+    $siblings.removeClass("active");
+    $siblings.attr("data-is-selected-page", "false");
+
+    // Change page ONLY when the attribute is a real selector (e.g. "#tab-1")
+    // Gallery uses this attribute for Appwrite album ids, so we must NOT run show/hide there.
+    if (targetTabId.trim().startsWith("#")) {
       $(targetTabId).show();
 
-      siblings.each((__, sibling) => {
-        const siblingChangeToId = $(sibling).attr("data-related-content-id");
-        $(siblingChangeToId).hide();
+      $siblings.each((__, sibling) => {
+        const siblingChangeToId =
+          $(sibling).attr("data-related-content-id") || "";
+        if (siblingChangeToId.trim().startsWith("#")) {
+          $(siblingChangeToId).hide();
+        }
       });
     }
   });

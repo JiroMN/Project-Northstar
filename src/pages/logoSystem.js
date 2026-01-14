@@ -240,7 +240,7 @@ const googleDriveURL = await gatherGoogleDriveURL();
 
 $("#downloadAllLogos")
   .off("click.downloadLogos")
-  .on("click.downloadLogos", async function () {
+  .on("click.downloadLogos", function () {
     try {
       window.open(googleDriveURL, "_blank");
     } catch (err) {

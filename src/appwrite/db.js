@@ -2,6 +2,7 @@ import { Databases, Query } from "appwrite";
 import { client } from "./client";
 import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
+import { getFile, getFileDownload, getFilePreview } from "./storage";
 
 const databases = new Databases(client);
 
@@ -266,13 +267,16 @@ export async function getTypographyScaleData() {
 }
 
 // Typography Communication
-
 export async function getTypographyCommuncationData() {
   try {
     const examplesRes = await getCollection(
       APPWRITE.databases.toneOfVoice.id,
       APPWRITE.databases.toneOfVoice.collections.examplesTraits.id,
-      [Query.select(["*", "toVExample.*"]), Query.select(["*", "toVTraits.*"])]
+      [
+        Query.equal("client_id", await getClientId()),
+        Query.select(["*", "toVExample.*"]),
+        Query.select(["*", "toVTraits.*"]),
+      ]
     );
     const traitsRes = await getCollection(
       APPWRITE.databases.toneOfVoice.id,
@@ -280,6 +284,95 @@ export async function getTypographyCommuncationData() {
     );
     return { traits: traitsRes.documents, examples: examplesRes.documents };
   } catch (err) {
+    throw err;
+  }
+}
+
+// Gallery
+export async function getGalleryData(albumId, limit = 25, offset = 0) {
+  try {
+    const queries = [
+      Query.equal("client_id", await getClientId()),
+      // Include the related album on each gallery item (two-way relationship)
+      Query.select(["*", "galleryCategory.*"]),
+      Query.limit(limit),
+      Query.offset(offset),
+      Query.orderAsc("$createdAt"),
+    ];
+
+    if (albumId) {
+      queries.push(Query.equal("galleryCategory", albumId));
+    }
+
+    const itemsRes = await getCollection(
+      APPWRITE.databases.gallery.id,
+      APPWRITE.databases.gallery.collections.images.id,
+      queries
+    );
+
+    const files = await Promise.all(
+      (itemsRes.documents ?? []).map(async (item) => {
+        const storageRes = await getFile(
+          APPWRITE.buckets.gallery.id,
+          item.file_id
+        );
+
+        const previewRes = {
+          high: await getFilePreview(
+            APPWRITE.buckets.gallery.id,
+            item.file_id,
+            800
+          ),
+          mid: await getFilePreview(
+            APPWRITE.buckets.gallery.id,
+            item.file_id,
+            400
+          ),
+          low: await getFilePreview(
+            APPWRITE.buckets.gallery.id,
+            item.file_id,
+            100
+          ),
+        };
+
+        const downloadRes = await getFileDownload(
+          APPWRITE.buckets.gallery.id,
+          item.file_id
+        );
+
+        const album = item.galleryCategory;
+
+        return {
+          album,
+          document: item,
+          file: storageRes,
+          sources: { previews: previewRes, download: downloadRes },
+        };
+      })
+    );
+
+    return {
+      files,
+      total: itemsRes.total,
+      limit,
+      offset,
+    };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export async function getGalleryAlbums() {
+  try {
+    const res = await getCollection(
+      APPWRITE.databases.gallery.id,
+      APPWRITE.databases.gallery.collections.albums.id,
+      [Query.equal("client_id", await getClientId())]
+    );
+    return res;
+  } catch (err) {
+    console.error(err);
     throw err;
   }
 }
