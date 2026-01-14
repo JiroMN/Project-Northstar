@@ -2,6 +2,7 @@ import { checkAuth } from "../appwrite/auth";
 import { getGalleryAlbums, getGalleryData } from "../appwrite/db";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
+import { withLoader } from "../ui/loader";
 import {
   convertRemToPx,
   copyToClipboard,
@@ -197,7 +198,9 @@ function renderGalleryItems(files) {
 albumsData = await getGalleryAlbums();
 renderAlbums(albumsData.documents);
 
-data = await gatherGalleryInfo(selectedAlbumId, PAGE_SIZE, currentOffset);
+data = await withLoader(
+  gatherGalleryInfo(selectedAlbumId, PAGE_SIZE, currentOffset)
+);
 renderGalleryItems(data.files);
 layoutMasonryAfterRender();
 

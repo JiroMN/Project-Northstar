@@ -258,7 +258,10 @@ export async function getTypographyScaleData() {
     const res = await getCollection(
       APPWRITE.databases.typographySystem.id,
       APPWRITE.databases.typographySystem.collections.clientTypographyScale.id,
-      [Query.equal("client_id", await getClientId())]
+      [
+        Query.equal("client_id", await getClientId()),
+        Query.select(["*", "typographyScale.*"]),
+      ]
     );
     return res;
   } catch (err) {
@@ -269,11 +272,16 @@ export async function getTypographyScaleData() {
 // Typography Communication
 export async function getTypographyCommuncationData() {
   try {
+    console.log(
+      APPWRITE.databases.toneOfVoice.id,
+      APPWRITE.databases.toneOfVoice.collections.examplesTraits.id
+    );
     const examplesRes = await getCollection(
       APPWRITE.databases.toneOfVoice.id,
       APPWRITE.databases.toneOfVoice.collections.examplesTraits.id,
       [
-        Query.equal("client_id", await getClientId()),
+        // No equal query! Let appwrite row security handle permission based returns
+        // Query.equal("client_id", await getClientId()),
         Query.select(["*", "toVExample.*"]),
         Query.select(["*", "toVTraits.*"]),
       ]
