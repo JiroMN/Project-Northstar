@@ -195,17 +195,24 @@ export async function getBrandEssenceData() {
     if (clientId) {
       const cpRes = await getCollection(
         APPWRITE.databases.brandEssence.id,
-        APPWRITE.databases.brandEssence.collections.corePurpose.id
+        APPWRITE.databases.brandEssence.collections.corePurpose.id,
+        [Query.equal("client_id", await getClientId())]
       );
       const osRes = await getCollection(
         APPWRITE.databases.brandEssence.id,
-        APPWRITE.databases.brandEssence.collections.onliness.id
+        APPWRITE.databases.brandEssence.collections.onliness.id,
+        [Query.equal("client_id", await getClientId())]
       );
       const tlRes = await getCollection(
         APPWRITE.databases.brandEssence.id,
-        APPWRITE.databases.brandEssence.brandEssence.trueline.id
+        APPWRITE.databases.brandEssence.collections.trueline.id,
+        [Query.equal("client_id", await getClientId())]
       );
-      return { corePurpose: cpRes, onliness: osRes, trueline: tlRes };
+      return {
+        corePurpose: cpRes.documents[0],
+        onliness: osRes.documents[0],
+        trueline: tlRes.documents[0],
+      };
     } else {
       throw { message: "No client ID found." };
     }

@@ -1,6 +1,7 @@
 import { Query } from "appwrite";
 import { checkAuth } from "../appwrite/auth";
 import {
+  getBrandEssenceData,
   getBrandStoryData,
   getClientData,
   getClientId,
@@ -195,6 +196,26 @@ $(".visual-resources-card").each((index, elem) => {
         .to($backdropShapeContainer, { autoAlpha: 0, yPercent: 50 }, "<");
     });
 });
+
+// Brand Essence
+async function processEssenceData() {
+  try {
+    const res = await getBrandEssenceData();
+
+    res.trueline.trueline &&
+      applyTextBindings($(".dashboard-hero"), {
+        trueline: res.trueline.trueline,
+      });
+  } catch (err) {
+    renderToast(
+      "Oeps!",
+      "Kon geen Brand Essence informatie ophalen",
+      "negative"
+    );
+  }
+}
+
+await processEssenceData();
 
 // Actions
 // Hover animations

@@ -94,7 +94,7 @@ export const APPWRITE = {
       collections: {
         corePurpose: { id: "core_purpose" },
         onliness: { id: "onliness_statement" },
-        trueLine: { id: "trueline" },
+        trueline: { id: "trueline" },
       },
     },
 
