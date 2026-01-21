@@ -18,6 +18,7 @@ module.exports = {
     ["pages/typographyCommunication"]: "./src/pages/typographyCommunication.js",
     ["pages/gallery"]: "./src/pages/gallery.js",
     ["pages/brandEssence"]: "./src/pages/brandEssence.js",
+    ["pages/brandStory"]: "./src/pages/brandStory.js",
     ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
     ["pages/login"]: "./src/pages/login.js",
     ["ui/toast"]: "./src/ui/toast.js",

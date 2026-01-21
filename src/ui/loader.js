@@ -81,7 +81,7 @@ let hideLoaderTl = gsap
   .add(() => $loader.css("display", "none"), ">");
 
 function showLoader() {
-  console.log("Showing Loader", $loader.length);
+  // console.log("Showing Loader", $loader.length);
   if (!$loader.length) return;
 
   // Already visible: don't restart the show animation
@@ -95,7 +95,7 @@ function showLoader() {
 }
 
 function hideLoader() {
-  console.log($loader.length);
+  // console.log($loader.length);
   if (!$loader.length) return;
   $loader.attr("is-loading", "false");
 
@@ -112,7 +112,7 @@ export async function withLoader(promise) {
   cancelScheduledHide();
 
   pending += 1;
-  console.log("loader called", pending);
+  // console.log("loader called", pending);
 
   if (pending === 1) {
     shownAt = Date.now();

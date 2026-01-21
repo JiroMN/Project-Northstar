@@ -385,13 +385,10 @@ obituaryAudio.preload = "none";
 async function bindObituaryFile() {
   try {
     const res = await getBrandStoryData();
-    const obituary = res.obituary.documents[0];
+    const obituary = res.obituary;
 
-    if (obituary) {
-      const fileDwnld = await getFileDownload(
-        APPWRITE.buckets.obituary.id,
-        obituary.attachment_id
-      );
+    if (obituary.file) {
+      const fileDwnld = obituary.file;
       obituaryAudio.src = fileDwnld;
     } else {
       console.error("No obituary data found");
@@ -474,6 +471,3 @@ obituaryCard.off("click.toggleplayer").on("click.toggleplayer", function () {
       );
   }
 });
-
-// —— Set Continuity Hours
-// ApplyDatabinds

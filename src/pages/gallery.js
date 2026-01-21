@@ -48,15 +48,12 @@ function layoutMasonryAfterRender() {
   setTimeout(() => {
     initMasonry();
 
-    // 1) Masonry opnieuw laten scannen
-    $grid.masonry("reloadItems"); // docs: reloadItems recollects all items
+    $grid.masonry("reloadItems");
 
-    // 2) imagesLoaded: layout na elke image load (aanrader van docs)
     $grid.imagesLoaded().progress(function () {
-      $grid.masonry("layout"); // docs: layout herpositioneert items
+      $grid.masonry("layout");
     });
 
-    // 3) eventueel alvast 1 keer layouten (kan fijn zijn voor placeholders)
     $grid.masonry("layout");
   }, 0);
 }

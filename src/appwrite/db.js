@@ -177,8 +177,40 @@ export async function getBrandStoryData() {
         APPWRITE.databases.brandStory.id,
         APPWRITE.databases.brandStory.collections.obituary.id
       );
+      const obituaryAudio = await getFileDownload(
+        APPWRITE.buckets.obituary.id,
+        obituaryRes.documents[0].attachment_id
+      );
 
-      return { vision: visionRes, obituary: obituaryRes };
+      const visionPreviewRes = {
+        high: await getFilePreview(
+          APPWRITE.buckets.vision.id,
+          visionRes.documents[0].attachment_id,
+          800
+        ),
+        mid: await getFilePreview(
+          APPWRITE.buckets.vision.id,
+          visionRes.documents[0].attachment_id,
+          400
+        ),
+        low: await getFilePreview(
+          APPWRITE.buckets.vision.id,
+          visionRes.documents[0].attachment_id,
+          100
+        ),
+      };
+
+      return {
+        vision: {
+          document: visionRes.documents[0],
+          files: {
+            low: visionPreviewRes.low,
+            mid: visionPreviewRes.mid,
+            high: visionPreviewRes.high,
+          },
+        },
+        obituary: { document: obituaryRes.documents[0], file: obituaryAudio },
+      };
     } else {
       throw { message: "No client ID found." };
     }
