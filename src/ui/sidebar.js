@@ -170,7 +170,7 @@ async function bindDataToInfoCards() {
     const response = await getClientData();
     const data = response.client.documents[0];
     const avatar = await getFilePreview(
-      APPWRITE.buckets.logos.id,
+      APPWRITE.buckets.clientFiles.id,
       data.avatar_file_id
     );
     const subscriptionsRes = await getContinuityPackageData();

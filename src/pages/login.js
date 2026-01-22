@@ -29,7 +29,6 @@ logInButton.on("click", async function () {
     try {
       setButtonState($(this), "loading", false);
       const response = await requestMagicUrlToken(input.val());
-      console.log(response);
       if (response) {
         // Set email adress in feedback
         $("#magicUrlSentTo").text(input.val());

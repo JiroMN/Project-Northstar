@@ -8,10 +8,8 @@ function handleScreenSizeNotice() {
     window.innerHeight < BREAKPOINT_HEIGHT
   ) {
     screenSizeScreen.css("display", "flex");
-    console.log("Too Small");
   } else {
     screenSizeScreen.css("display", "none");
-    console.log("Good viewport");
   }
 }
 

@@ -135,7 +135,6 @@ const typographyScaleData = await withLoader(gatherTypographyScaleData());
 
 function renderScaleSteps() {
   const scaleStepTemplate = $("#typographyScaleStepTemplate");
-  console.log("Fetching scale...", typographyScaleData);
 
   // Base states
   scaleStepTemplate.css("display", "none");

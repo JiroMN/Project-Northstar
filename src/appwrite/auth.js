@@ -40,7 +40,6 @@ export async function requestMagicUrlToken(email) {
         `${CONFIG.baseUrl}/login/activate`
       );
     } else {
-      console.log(dbResponse);
       throw {
         code: 401,
       };

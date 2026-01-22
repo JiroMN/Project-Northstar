@@ -7,7 +7,7 @@ export async function getFile(bucketId, fileId) {
   try {
     return storage.getFile(bucketId, fileId);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }
@@ -27,7 +27,7 @@ export async function getFileDownload(bucketId, fileId) {
   try {
     return storage.getFileDownload(bucketId, fileId);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw err;
   }
 }

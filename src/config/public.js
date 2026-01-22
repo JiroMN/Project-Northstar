@@ -126,6 +126,9 @@ export const APPWRITE = {
     logos: {
       id: "694400790025690e2c19",
     },
+    clientFiles: {
+      id: "6971ef4b003440c686a1",
+    },
     gallery: {
       id: "694400c1003113933eb3",
     },

@@ -25,7 +25,6 @@ $("#activateButton").on("click", async function () {
       }, 2000);
     }
   } catch (err) {
-    console.log(userId, secret);
     renderToast("Oops!", getErrorMessage(err), "negative");
   }
 });

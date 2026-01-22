@@ -39,7 +39,6 @@ function initMasonry() {
     transitionDuration: 0,
   });
 
-  console.log("Initializing Masonry");
   msnry = $grid.data("masonry");
   return msnry;
 }

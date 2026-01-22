@@ -311,10 +311,6 @@ export async function getTypographyScaleData() {
 // Typography Communication
 export async function getTypographyCommuncationData() {
   try {
-    console.log(
-      APPWRITE.databases.toneOfVoice.id,
-      APPWRITE.databases.toneOfVoice.collections.examplesTraits.id
-    );
     const examplesRes = await getCollection(
       APPWRITE.databases.toneOfVoice.id,
       APPWRITE.databases.toneOfVoice.collections.examplesTraits.id,
