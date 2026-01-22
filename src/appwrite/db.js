@@ -1,6 +1,6 @@
 import { Databases, Query } from "appwrite";
 import { client } from "./client";
-import { getSubscription } from "./functions";
+import { getSubscriptionFromStripe } from "./functions";
 import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
 import { getFile, getFileDownload, getFilePreview } from "./storage";
@@ -87,8 +87,10 @@ export async function getContinuityPackageData() {
       ],
     );
 
-    const sub = await getSubscription(await getClientId());
-    console.log(sub.message, sub.clientId);
+    const stripeRes = await getSubscriptionFromStripe(
+      subsRes?.documents[0]?.stripe_subscriptionId,
+    );
+    console.log(stripeRes);
 
     return subsRes;
   } catch (err) {

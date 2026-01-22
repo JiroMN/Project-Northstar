@@ -1,19 +1,14 @@
-export default async ({ req, res, log }) => {
-  let body = req.body;
-  try {
-    if (typeof req.body === "string" && req.body.length) {
-      body = JSON.parse(req.body);
-    }
-  } catch (e) {
-    log?.("Failed to parse req.body as JSON:", String(e));
-  }
+import Stripe from "stripe";
 
-  log("get-subscription invoked");
-  log("body:", body);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export default async ({ req, res, log }) => {
+  log("Stripe key exists", !!process.env.STRIPE_SECRET_KEY);
+
+  const subs = await stripe.subscriptions.list({ limit: 999 });
 
   return res.json({
     ok: true,
-    message: body?.testMessage,
-    clientId: body?.clientId,
+    subscriptions: subs.data,
   });
 };
