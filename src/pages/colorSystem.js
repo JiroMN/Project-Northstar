@@ -122,7 +122,11 @@ $(".color-token-card").each((__, card) => {
 
   $card.off("mouseenter.hoverToken").on("mouseenter.hoverToken", function () {
     gsap
-      .timeline()
+      .timeline({
+        onStart: () => $card.find(".color-format").css("pointerEvents", "none"),
+        onComplete: () =>
+          $card.find(".color-format").css("pointerEvents", "auto"),
+      })
       // Color Formats
       .to($card.find(".color-format"), {
         yPercent: 0,
