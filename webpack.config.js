@@ -24,6 +24,7 @@ module.exports = {
     ["ui/toast"]: "./src/ui/toast.js",
     ["ui/modal"]: "./src/ui/modal.js",
     ["ui/sidebar"]: "./src/ui/sidebar.js",
+    ["ui/screenSize"]: "./src/ui/screenSize.js",
     ["utils/helpers"]: "./src/utils/helpers.js",
     ["utils/dataBinding"]: "./src/utils/dataBinding.js",
   },
