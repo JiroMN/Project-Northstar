@@ -1,4 +1,4 @@
-export default async ({ req, res, context }) => {
+export default async ({ req, res, log }) => {
   // Appwrite Functions pass `req.body` as a string for executions.
   // Safely parse JSON if possible, otherwise keep the raw value.
   let body = req.body;
@@ -8,11 +8,11 @@ export default async ({ req, res, context }) => {
     }
   } catch (e) {
     // If body isn't valid JSON, keep it as-is.
-    context?.log?.("Failed to parse req.body as JSON:", String(e));
+    log?.("Failed to parse req.body as JSON:", String(e));
   }
 
-  context.log("get-subscription invoked");
-  context.log("body:", body);
+  log("get-subscription invoked");
+  log("body:", body);
 
   return res.json({
     ok: true,
