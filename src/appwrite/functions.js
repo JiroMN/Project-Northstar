@@ -5,11 +5,15 @@ import APPWRITE from "../config/public";
 export const functions = new Functions(client);
 
 export async function getSubscriptionFromStripe() {
-  const execution = await functions.createExecution(
-    APPWRITE.functions.getSubscription,
-  );
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.getSubscription,
+    );
 
-  const data = execution.responseBody && JSON.parse(execution.responseBody);
+    const data = execution.responseBody && JSON.parse(execution.responseBody);
 
-  return data;
+    return data;
+  } catch (err) {
+    throw err;
+  }
 }
