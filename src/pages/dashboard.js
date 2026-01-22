@@ -28,11 +28,13 @@ export async function processContinuityInfo() {
     const spentHours = continuityTimeInfo.spentHours;
     const spentConsultingHours = continuityTimeInfo.spentConsultingHours;
 
+    console.log(continuityTimeInfo);
     gsap
       .timeline()
       .to(".dashboard-hero-continuity-progressbar.reserved", {
         width: `${
-          (packageData.reserved_consulting_hours / packageData.total_hours) *
+          (continuityTimeInfo.reservedConsultingHours /
+            continuityTimeInfo.totalHours) *
           100
         }%`,
       })
@@ -40,19 +42,19 @@ export async function processContinuityInfo() {
         "#reservedProgress",
         {
           width: `${
-            (spentConsultingHours / packageData.reserved_consulting_hours) * 100
+            (spentConsultingHours /
+              continuityTimeInfo.reservedConsultingHours) *
+            100
           }%`,
         },
-        "<50%"
+        "<50%",
       )
       .to(
         "#freeProgress",
         {
-          width: `${
-            (spentConsultingHours / packageData.reserved_consulting_hours) * 100
-          }%`,
+          width: `${(spentHours / continuityTimeInfo.totalFreeHours) * 100}%`,
         },
-        "<50%"
+        "<50%",
       );
 
     const totalHours = continuityTimeInfo.totalFreeHours;
@@ -77,7 +79,7 @@ export async function processContinuityInfo() {
     renderToast(
       "Oops!",
       "Can't gather your continuity information.",
-      "warning"
+      "warning",
     );
   }
 }
@@ -92,7 +94,7 @@ async function setResourceData() {
     const response = await getCollection(
       APPWRITE.databases.general.id,
       APPWRITE.databases.general.collections.resources.id,
-      [Query.equal("client_id", clientIdRes)]
+      [Query.equal("client_id", clientIdRes)],
     );
     let resources = response.documents[0];
 
@@ -149,7 +151,7 @@ $(".resource-card").each((__, elem) => {
 $(".visual-resources-card").each((index, elem) => {
   const $elem = $(elem);
   const $backdropShapeContainer = $elem.find(
-    ".visual-resource-backdrop-icon-container"
+    ".visual-resource-backdrop-icon-container",
   );
 
   const backdropImage = $elem.css("backgroundImage");
@@ -210,7 +212,7 @@ async function processEssenceData() {
     renderToast(
       "Oeps!",
       "Kon geen Brand Essence informatie ophalen",
-      "negative"
+      "negative",
     );
   }
 }
@@ -247,18 +249,18 @@ $(".action-card").each((__, elem) => {
       targetBgColor = getCssValueFromVarName("var(--foreground)");
       targetFgColor = getCssValueFromVarName("var(--background)");
       targetBgToneColor = getCssValueFromVarName(
-        "var(--_all-colors---light--backgroundtones--50)"
+        "var(--_all-colors---light--backgroundtones--50)",
       );
       break;
     case "obituary":
       targetBgColor = getCssValueFromVarName(
-        "var(--_all-colors---service-color--strategy--background)"
+        "var(--_all-colors---service-color--strategy--background)",
       );
       targetFgColor = getCssValueFromVarName(
-        "var(--_all-colors---service-color--strategy--foreground)"
+        "var(--_all-colors---service-color--strategy--foreground)",
       );
       targetBgToneColor = getCssValueFromVarName(
-        "var(--_all-colors---service-color--strategy--background)"
+        "var(--_all-colors---service-color--strategy--background)",
       );
       break;
     case "continuity-hours":
@@ -268,13 +270,13 @@ $(".action-card").each((__, elem) => {
       };
       // (Top-foreground text is added for continuity-hours)
       targetBgColor = getCssValueFromVarName(
-        "var(--_all-colors---service-color--continuity--background)"
+        "var(--_all-colors---service-color--continuity--background)",
       );
       targetFgColor = getCssValueFromVarName(
-        "var(--_all-colors---service-color--continuity--foreground)"
+        "var(--_all-colors---service-color--continuity--foreground)",
       );
       targetBgToneColor = getCssValueFromVarName(
-        "var(--_all-colors---service-color--continuity--background)"
+        "var(--_all-colors---service-color--continuity--background)",
       );
       break;
   }
@@ -304,14 +306,14 @@ $(".action-card").each((__, elem) => {
           {
             backgroundColor: targetBgToneColor,
           },
-          "<"
+          "<",
         )
         .to(
           topFgTargets,
           {
             color: targetFgColor,
           },
-          "<"
+          "<",
         );
     });
 
@@ -327,7 +329,7 @@ $(".action-card").each((__, elem) => {
           {
             backgroundColor: originalBgToneColor,
           },
-          "<"
+          "<",
         )
         .to(
           topFgTargets,
@@ -335,7 +337,7 @@ $(".action-card").each((__, elem) => {
             // Restore each element to its own original color
             color: (i, target) => $(target).data("originalColor"),
           },
-          "<"
+          "<",
         );
     });
 });
@@ -348,7 +350,7 @@ async function getBrandbookDownload() {
     if (dbRes) {
       const storageRes = await getFileDownload(
         APPWRITE.buckets.brandbooks.id,
-        dbRes.client.documents[0].brandbook_file_id
+        dbRes.client.documents[0].brandbook_file_id,
       );
       if (storageRes) {
         brandbookCard.attr("href", storageRes);
@@ -374,7 +376,7 @@ brandbookCard.off("click.brandbook").on("click.brandbook", function (e) {
     "Download",
     () => {
       window.open(href, "_blank");
-    }
+    },
   );
 });
 
@@ -415,13 +417,13 @@ obituaryAudio.onended = () => {
     .fromTo(
       pauseIcon,
       { yPercent: 0, autoAlpha: 1 },
-      { yPercent: -100, autoAlpha: 0 }
+      { yPercent: -100, autoAlpha: 0 },
     )
     .fromTo(
       playIcon,
       { yPercent: 100, autoAlpha: 0 },
       { yPercent: 0, autoAlpha: 1 },
-      "<"
+      "<",
     );
 };
 
@@ -440,13 +442,13 @@ obituaryCard.off("click.toggleplayer").on("click.toggleplayer", function () {
       .fromTo(
         pauseIcon,
         { yPercent: -100, autoAlpha: 0 },
-        { yPercent: 0, autoAlpha: 1 }
+        { yPercent: 0, autoAlpha: 1 },
       )
       .fromTo(
         playIcon,
         { yPercent: 0, autoAlpha: 1 },
         { yPercent: 100, autoAlpha: 0 },
-        "<"
+        "<",
       );
   } else if ($card.attr("data-is-playing") === "true") {
     gsap
@@ -461,13 +463,13 @@ obituaryCard.off("click.toggleplayer").on("click.toggleplayer", function () {
       .fromTo(
         pauseIcon,
         { yPercent: 0, autoAlpha: 1 },
-        { yPercent: -100, autoAlpha: 0 }
+        { yPercent: -100, autoAlpha: 0 },
       )
       .fromTo(
         playIcon,
         { yPercent: 100, autoAlpha: 0 },
         { yPercent: 0, autoAlpha: 1 },
-        "<"
+        "<",
       );
   }
 });

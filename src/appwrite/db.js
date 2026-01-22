@@ -3,6 +3,7 @@ import { client } from "./client";
 import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
 import { getFile, getFileDownload, getFilePreview } from "./storage";
+import { isBetweenDates } from "../utils/helpers";
 
 const databases = new Databases(client);
 
@@ -23,7 +24,7 @@ export async function gatherGoogleDriveURL() {
     const resources = await getCollection(
       APPWRITE.databases.general.id,
       APPWRITE.databases.general.collections.resources.id,
-      [Query.equal("client_id", clientId)]
+      [Query.equal("client_id", clientId)],
     );
     return resources.documents[0].googledrive_url;
     // TODO: Navigating to specific folder
@@ -40,7 +41,7 @@ export async function getClientData() {
       const clientTableResponse = await getCollection(
         APPWRITE.databases.accounts.id,
         APPWRITE.databases.accounts.collections.clients.id,
-        [Query.equal("team_id", myTeamRes.team[0].$id)]
+        [Query.equal("team_id", myTeamRes.team[0].$id)],
       );
 
       return { client: clientTableResponse, teams: myTeamRes };
@@ -60,7 +61,7 @@ export async function getClientId() {
       const clientTableResponse = await getCollection(
         APPWRITE.databases.accounts.id,
         APPWRITE.databases.accounts.collections.clients.id,
-        [Query.equal("team_id", myTeamRes.team[0].$id)]
+        [Query.equal("team_id", myTeamRes.team[0].$id)],
       );
 
       return clientTableResponse.documents[0].$id;
@@ -82,7 +83,7 @@ export async function getContinuityPackageData() {
       [
         Query.equal("client_id", await getClientId()),
         Query.select(["*", "continuityPackage.*"]),
-      ]
+      ],
     );
 
     return subsRes;
@@ -93,7 +94,10 @@ export async function getContinuityPackageData() {
 }
 export async function getTimeLogs(includeSub = false) {
   try {
-    let queries = [Query.equal("client_id", await getClientId())];
+    let queries = [
+      Query.equal("client_id", await getClientId()),
+      Query.limit(9999),
+    ];
     if (includeSub) {
       queries.push(Query.select(["*", "clientContinuitySubscriptions.*"]));
     }
@@ -101,7 +105,7 @@ export async function getTimeLogs(includeSub = false) {
     const subsRes = await getCollection(
       APPWRITE.databases.continuity.id,
       APPWRITE.databases.continuity.collections.timelogs.id,
-      queries
+      queries,
     );
 
     return subsRes;
@@ -128,17 +132,24 @@ export async function getContinuityTimeInfo() {
 
     for (const log of logs) {
       const hours = parseFloat(log?.hours ?? 0);
-
-      if (log?.isReservedConsultingSessions) {
-        spentConsultingHours += hours;
-      } else {
-        spentHours += hours;
+      if (
+        isBetweenDates(
+          log?.date,
+          subscriptionData?.documents[0]?.billing_period_start_date,
+          subscriptionData?.documents[0]?.billing_period_end_date,
+        )
+      ) {
+        if (log?.isReservedConsultingSessions) {
+          spentConsultingHours += hours;
+        } else {
+          spentHours += hours;
+        }
       }
     }
 
     const totalHours = Number(packageData?.total_hours ?? 0);
     const reservedConsultingHours = Number(
-      packageData?.reserved_consulting_hours ?? 0
+      packageData?.reserved_consulting_hours ?? 0,
     );
 
     const totalFreeHours = totalHours - reservedConsultingHours;
@@ -171,32 +182,32 @@ export async function getBrandStoryData() {
     if (clientId) {
       const visionRes = await getCollection(
         APPWRITE.databases.brandStory.id,
-        APPWRITE.databases.brandStory.collections.vision.id
+        APPWRITE.databases.brandStory.collections.vision.id,
       );
       const obituaryRes = await getCollection(
         APPWRITE.databases.brandStory.id,
-        APPWRITE.databases.brandStory.collections.obituary.id
+        APPWRITE.databases.brandStory.collections.obituary.id,
       );
       const obituaryAudio = await getFileDownload(
         APPWRITE.buckets.obituary.id,
-        obituaryRes.documents[0].attachment_id
+        obituaryRes.documents[0].attachment_id,
       );
 
       const visionPreviewRes = {
         high: await getFilePreview(
           APPWRITE.buckets.vision.id,
           visionRes.documents[0].attachment_id,
-          800
+          800,
         ),
         mid: await getFilePreview(
           APPWRITE.buckets.vision.id,
           visionRes.documents[0].attachment_id,
-          400
+          400,
         ),
         low: await getFilePreview(
           APPWRITE.buckets.vision.id,
           visionRes.documents[0].attachment_id,
-          100
+          100,
         ),
       };
 
@@ -228,17 +239,17 @@ export async function getBrandEssenceData() {
       const cpRes = await getCollection(
         APPWRITE.databases.brandEssence.id,
         APPWRITE.databases.brandEssence.collections.corePurpose.id,
-        [Query.equal("client_id", await getClientId())]
+        [Query.equal("client_id", await getClientId())],
       );
       const osRes = await getCollection(
         APPWRITE.databases.brandEssence.id,
         APPWRITE.databases.brandEssence.collections.onliness.id,
-        [Query.equal("client_id", await getClientId())]
+        [Query.equal("client_id", await getClientId())],
       );
       const tlRes = await getCollection(
         APPWRITE.databases.brandEssence.id,
         APPWRITE.databases.brandEssence.collections.trueline.id,
-        [Query.equal("client_id", await getClientId())]
+        [Query.equal("client_id", await getClientId())],
       );
       return {
         corePurpose: cpRes.documents[0],
@@ -264,7 +275,7 @@ export async function getLogoSystemData() {
         Query.equal("client_id", await getClientId()),
         Query.select(["*", "logoVariants.*"]),
         Query.orderAsc("sort_order"),
-      ]
+      ],
     );
     return dbRes;
   } catch (err) {
@@ -283,7 +294,7 @@ export async function getTypographyFontData() {
         Query.orderAsc("sort_order"),
         Query.select(["*", "fontWeights.*"]),
         Query.select(["*", "typographyRules.*"]),
-      ]
+      ],
     );
     return res;
   } catch (err) {
@@ -299,7 +310,7 @@ export async function getTypographyScaleData() {
       [
         Query.equal("client_id", await getClientId()),
         Query.select(["*", "typographyScale.*"]),
-      ]
+      ],
     );
     return res;
   } catch (err) {
@@ -318,11 +329,11 @@ export async function getTypographyCommuncationData() {
         // Query.equal("client_id", await getClientId()),
         Query.select(["*", "toVExample.*"]),
         Query.select(["*", "toVTraits.*"]),
-      ]
+      ],
     );
     const traitsRes = await getCollection(
       APPWRITE.databases.toneOfVoice.id,
-      APPWRITE.databases.toneOfVoice.collections.traits.id
+      APPWRITE.databases.toneOfVoice.collections.traits.id,
     );
     return { traits: traitsRes.documents, examples: examplesRes.documents };
   } catch (err) {
@@ -349,37 +360,37 @@ export async function getGalleryData(albumId, limit = 25, offset = 0) {
     const itemsRes = await getCollection(
       APPWRITE.databases.gallery.id,
       APPWRITE.databases.gallery.collections.images.id,
-      queries
+      queries,
     );
 
     const files = await Promise.all(
       (itemsRes.documents ?? []).map(async (item) => {
         const storageRes = await getFile(
           APPWRITE.buckets.gallery.id,
-          item.file_id
+          item.file_id,
         );
 
         const previewRes = {
           high: await getFilePreview(
             APPWRITE.buckets.gallery.id,
             item.file_id,
-            800
+            800,
           ),
           mid: await getFilePreview(
             APPWRITE.buckets.gallery.id,
             item.file_id,
-            400
+            400,
           ),
           low: await getFilePreview(
             APPWRITE.buckets.gallery.id,
             item.file_id,
-            100
+            100,
           ),
         };
 
         const downloadRes = await getFileDownload(
           APPWRITE.buckets.gallery.id,
-          item.file_id
+          item.file_id,
         );
 
         const album = item.galleryCategory;
@@ -390,7 +401,7 @@ export async function getGalleryData(albumId, limit = 25, offset = 0) {
           file: storageRes,
           sources: { previews: previewRes, download: downloadRes },
         };
-      })
+      }),
     );
 
     return {
@@ -410,7 +421,7 @@ export async function getGalleryAlbums() {
     const res = await getCollection(
       APPWRITE.databases.gallery.id,
       APPWRITE.databases.gallery.collections.albums.id,
-      [Query.equal("client_id", await getClientId())]
+      [Query.equal("client_id", await getClientId())],
     );
     return res;
   } catch (err) {

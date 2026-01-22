@@ -11,6 +11,7 @@ import {
   daysUntil,
   formatFullDate,
   formatFullDayDate,
+  getCssValueFromVarName,
   isBetweenDates,
 } from "../utils/helpers";
 
@@ -45,7 +46,8 @@ async function processContinuityInfo() {
       .timeline()
       .to(".dashboard-hero-continuity-progressbar.reserved", {
         width: `${
-          (packageData.reserved_consulting_hours / packageData.total_hours) *
+          (continuityTimeInfo.reservedConsultingHours /
+            continuityTimeInfo.totalHours) *
           100
         }%`,
       })
@@ -53,19 +55,19 @@ async function processContinuityInfo() {
         "#reservedProgress",
         {
           width: `${
-            (spentConsultingHours / packageData.reserved_consulting_hours) * 100
+            (spentConsultingHours /
+              continuityTimeInfo.reservedConsultingHours) *
+            100
           }%`,
         },
-        "<50%"
+        "<50%",
       )
       .to(
         "#freeProgress",
         {
-          width: `${
-            (spentConsultingHours / packageData.reserved_consulting_hours) * 100
-          }%`,
+          width: `${(spentHours / continuityTimeInfo.totalFreeHours) * 100}%`,
         },
-        "<50%"
+        "<50%",
       );
 
     const totalHours = continuityTimeInfo.totalFreeHours;
@@ -138,6 +140,25 @@ function renderLogs() {
         "timelog-hours": log.hours,
         "timelog-type": log.work_type,
       });
+      if (log.isReservedConsultingSessions) {
+        copiedLog
+          .find(".continuity-timelog-info-badge.title")
+          .css(
+            "backgroundColor",
+            getCssValueFromVarName(
+              "var(--_all-colors---service-color--continuity--background)",
+            ),
+          );
+        copiedLog
+          .find(".continuity-timelog-info-badge.title")
+          .children()
+          .css(
+            "color",
+            getCssValueFromVarName(
+              "var(--_all-colors---service-color--continuity--foreground)",
+            ),
+          );
+      }
     });
 
     // Decide which period
