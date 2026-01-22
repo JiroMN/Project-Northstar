@@ -264,7 +264,6 @@ export async function getLogoSystemData() {
         Query.equal("client_id", await getClientId()),
         Query.select(["*", "logoVariants.*"]),
         Query.orderAsc("sort_order"),
-        // Hoe ook logoVariants te sorteren?
       ]
     );
     return dbRes;

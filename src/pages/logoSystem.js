@@ -1,5 +1,9 @@
 import { checkAuth } from "../appwrite/auth";
-import { gatherGoogleDriveURL, getLogoSystemData } from "../appwrite/db";
+import {
+  gatherGoogleDriveURL,
+  getClientData,
+  getLogoSystemData,
+} from "../appwrite/db";
 import { getFileDownload, getFilePreview } from "../appwrite/storage";
 import APPWRITE from "../config/public";
 import { withLoader } from "../ui/loader";
@@ -10,6 +14,7 @@ import { getErrorMessage } from "../utils/helpers";
 await checkAuth();
 
 const fileTypeDwnlds = $(".logo-system-variant-showcase-action.file-types");
+const imageBackdrop = $(".logo-system-backdrop-image");
 
 // templates
 const $logoSetTemplate = $("#logoSetTemplate");
@@ -25,6 +30,24 @@ gsap.set(fileTypeDwnlds, {
 async function processLogoData() {
   try {
     const res = await getLogoSystemData();
+
+    const storageRes = await getClientData();
+    const backdropId =
+      storageRes.client.documents[0].logo_system_backdrop_file_id;
+
+    const backdropFile = await getFileDownload(
+      APPWRITE.buckets.clientFiles.id,
+      backdropId
+    );
+
+    imageBackdrop
+      .attr("src", backdropFile)
+      .attr(
+        "srcset",
+        `${backdropFile} 100w, ${backdropFile} 400w, ${backdropFile} 800w`.trim()
+      )
+      .attr("sizes", "100vw");
+
     return res.documents;
   } catch (err) {
     console.error(err);
