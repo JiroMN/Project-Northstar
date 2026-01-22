@@ -28,7 +28,6 @@ export async function processContinuityInfo() {
     const spentHours = continuityTimeInfo.spentHours;
     const spentConsultingHours = continuityTimeInfo.spentConsultingHours;
 
-    console.log(continuityTimeInfo);
     gsap
       .timeline()
       .to(".dashboard-hero-continuity-progressbar.reserved", {

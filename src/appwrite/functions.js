@@ -8,7 +8,8 @@ export async function getSubscription(clientId) {
   const execution = await functions.createExecution(
     APPWRITE.functions.getSubscription,
     JSON.stringify({
-      testMessage: `Ik wil graag van ${clientId} de data hebben!`,
+      testMessage: `Hello from Appwrite!`,
+      clientId: clientId,
     }),
   );
 

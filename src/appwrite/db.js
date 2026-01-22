@@ -88,7 +88,7 @@ export async function getContinuityPackageData() {
     );
 
     const sub = await getSubscription(await getClientId());
-    console.log(sub);
+    console.log(sub.message, sub.clientId);
 
     return subsRes;
   } catch (err) {
