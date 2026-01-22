@@ -29,6 +29,10 @@ export const APPWRITE = {
   endpoint: "https://fra.cloud.appwrite.io/v1",
   projectId: "6940136600382a052352",
 
+  functions: {
+    getSubscription: "69722558002ef4dae81e",
+  },
+
   databases: {
     continuity: {
       id: "6943fd3500265a51fec6",

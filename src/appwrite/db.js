@@ -1,5 +1,6 @@
 import { Databases, Query } from "appwrite";
 import { client } from "./client";
+import { getSubscription } from "./functions";
 import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
 import { getFile, getFileDownload, getFilePreview } from "./storage";
@@ -85,6 +86,9 @@ export async function getContinuityPackageData() {
         Query.select(["*", "continuityPackage.*"]),
       ],
     );
+
+    const sub = await getSubscription(await getClientId());
+    console.log(sub);
 
     return subsRes;
   } catch (err) {
