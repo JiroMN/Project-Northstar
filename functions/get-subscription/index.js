@@ -12,7 +12,9 @@ export default async ({ req, res, log }) => {
   try {
     const subId = req.bodyJson.subscriptionId;
     log("Looking for: " + subId);
-    const sub = await stripe.subscriptions.retrieve(subId);
+    const sub = await stripe.subscriptions.retrieve(subId, {
+      expand: ["items.data.price.product"],
+    });
 
     return res.json({
       ok: true,
@@ -23,7 +25,11 @@ export default async ({ req, res, log }) => {
         currentPeriodEnd: stripeTimestampToISO(sub.current_period_end),
         billingCycleAnchor: stripeTimestampToISO(sub.billing_cycle_anchor),
         priceId: sub.items.data[0].price.id,
-        productId: sub.items.data[0].price.product,
+        product: {
+          id: sub.items.data[0].price.product,
+          name: sub.items.data[0].price.product.name,
+          images: sub.items.data[0].price.product.images,
+        },
       },
     });
   } catch (error) {

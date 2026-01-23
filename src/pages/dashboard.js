@@ -218,7 +218,7 @@ $(".visual-resources-card").each((index, elem) => {
 // Brand Essence
 async function processEssenceData() {
   try {
-    const res = await getBrandEssenceData();
+    const res = await withLoader(getBrandEssenceData());
 
     res.trueline.trueline &&
       applyTextBindings($(".dashboard-hero"), {

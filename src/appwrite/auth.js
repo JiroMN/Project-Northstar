@@ -30,7 +30,7 @@ export async function checkAuth() {
 
 export async function checkContinuityAccess(
   redirectToDashboard = false,
-  toast = true,
+  toast = false,
 ) {
   try {
     await account.get();

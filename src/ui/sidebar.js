@@ -1,4 +1,4 @@
-import { logOut } from "../appwrite/auth";
+import { checkContinuityAccess, logOut } from "../appwrite/auth";
 import APPWRITE, { CONFIG } from "../config/public";
 import {
   formatShortDate,
@@ -10,6 +10,12 @@ import { renderToast } from "./toast";
 import { getClientData, getContinuityPackageData } from "../appwrite/db";
 import { applyTextBindings } from "../utils/dataBinding";
 import { getFilePreview } from "../appwrite/storage";
+
+const continuityAccess = await checkContinuityAccess();
+
+if (!continuityAccess) {
+  $(".sidebar-nav-button-upgrade-cta").css("display", "flex");
+}
 
 const sidebarMaxWidth = $(".sidebar").css("width");
 
@@ -176,6 +182,7 @@ async function bindDataToInfoCards() {
     const subscriptionsRes = await getContinuityPackageData();
     const dbSubData = subscriptionsRes.appwrite.documents[0];
     const stripeSubData = subscriptionsRes.stripe;
+    console.log(stripeSubData);
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
@@ -196,20 +203,7 @@ async function bindDataToInfoCards() {
     );
     // —— Change bg image
     const pkgBadge = $(".continuity-package-badge");
-    switch (dbSubData.continuityPackage.name) {
-      case "Continuity Essential":
-        pkgBadge.addClass("essential");
-        break;
-      case "Continuity Core":
-        pkgBadge.addClass("core");
-        break;
-      case "Continuity Plus":
-        pkgBadge.addClass("plus");
-        break;
-      default:
-        pkgBadge.addClass("none");
-        break;
-    }
+    // pkgBadge.css("background-image", `url(${stripeSubData})`);
   } catch (err) {
     console.error(err);
     renderToast("Oops!", getErrorMessage(err), "negative");
