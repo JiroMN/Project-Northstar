@@ -20,7 +20,7 @@ export async function getSubscriptionFromStripe(subscriptionId) {
   }
 }
 
-export async function createPortalSessions(customerId, returnUrl) {
+export async function createPortalSession(customerId, returnUrl) {
   try {
     const execution = await functions.createExecution(
       APPWRITE.functions.createPortalSession,

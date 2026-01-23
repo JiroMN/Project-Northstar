@@ -10,6 +10,7 @@ import { renderToast } from "./toast";
 import { getClientData, getContinuityPackageData } from "../appwrite/db";
 import { applyTextBindings } from "../utils/dataBinding";
 import { getFilePreview } from "../appwrite/storage";
+import { createPortalSession } from "../appwrite/functions";
 
 const continuityAccess = await checkContinuityAccess();
 
@@ -179,6 +180,10 @@ async function bindDataToInfoCards() {
       APPWRITE.buckets.clientFiles.id,
       data.avatar_file_id,
     );
+    const portalSession = await createPortalSession(
+      data.stripe_customer_id,
+      window.location.href,
+    );
     const subscriptionsRes = await getContinuityPackageData();
     const dbSubData = subscriptionsRes.appwrite.documents[0];
     const stripeSubData = subscriptionsRes.stripe;
@@ -203,6 +208,9 @@ async function bindDataToInfoCards() {
     // —— Change bg image
     const pkgBadge = $(".continuity-package-badge");
     pkgBadge.css("background-image", `url(${stripeSubData.product.images[0]})`);
+
+    // Link Portal Session
+    $("#manageBilling").attr("href", portalSession.session.url);
   } catch (err) {
     console.error(err);
     renderToast("Oops!", getErrorMessage(err), "negative");
