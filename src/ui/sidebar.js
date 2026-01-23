@@ -206,6 +206,9 @@ async function bindDataToInfoCards() {
       case "Continuity Plus":
         pkgBadge.addClass("plus");
         break;
+      default:
+        pkgBadge.addClass("none");
+        break;
     }
   } catch (err) {
     console.error(err);

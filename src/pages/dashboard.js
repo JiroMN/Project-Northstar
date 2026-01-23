@@ -1,5 +1,5 @@
 import { Query } from "appwrite";
-import { checkAuth } from "../appwrite/auth";
+import { checkAuth, checkContinuityAccess } from "../appwrite/auth";
 import {
   getBrandEssenceData,
   getBrandStoryData,
@@ -14,12 +14,29 @@ import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import { daysUntil, getCssValueFromVarName } from "../utils/helpers";
 import { renderModal } from "../ui/modal";
+import { withLoader } from "../ui/loader";
+import { behindContinuityPaywall } from "../ui/paywall";
 
 await checkAuth();
+const continuityAccess = await withLoader(checkContinuityAccess(false, false));
+if (!continuityAccess) {
+  behindContinuityPaywall($("[data-action-card-variant='continuity-hours']"));
+}
 
 // Get continuity hours for in 'hero' and 'actions'
 export async function processContinuityInfo() {
   try {
+    if (!continuityAccess) {
+      $(".dashboard-hero-continuity").remove();
+      $(".dashboard-hero")
+        .css("flex-grow", "0")
+        .css("height", "max-content")
+        .css("min-height", "25vh")
+        .css("max-height", "30vh");
+      $(".dashboard-hero-inner-container").css("justify-content", "end");
+
+      return;
+    }
     const continuityTimeInfo = await getContinuityTimeInfo();
 
     const packageData =

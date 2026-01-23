@@ -1,4 +1,4 @@
-import { checkAuth } from "../appwrite/auth";
+import { checkAuth, checkContinuityAccess } from "../appwrite/auth";
 import {
   getClientData,
   getContinuityPackageData,
@@ -16,6 +16,7 @@ import {
 } from "../utils/helpers";
 
 await checkAuth();
+const continuityAccess = await checkContinuityAccess(true, false);
 
 let timelogDocs;
 let periodStart;
