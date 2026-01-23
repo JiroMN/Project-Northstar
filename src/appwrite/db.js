@@ -88,11 +88,10 @@ export async function getContinuityPackageData() {
     );
 
     const stripeRes = await getSubscriptionFromStripe(
-      subsRes?.documents[0]?.stripe_subscriptionId,
+      subsRes?.documents[0]?.stripe_subscription_id,
     );
-    console.log(stripeRes);
 
-    return subsRes;
+    return { databaseRes: subsRes, stripeRes: stripeRes.subscription };
   } catch (err) {
     console.error(err);
     throw err;

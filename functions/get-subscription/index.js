@@ -3,6 +3,11 @@ import Stripe from "stripe";
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST_KEY);
 
+function stripeTimestampToISO(timestamp) {
+  if (!timestamp || typeof timestamp !== "number") return null;
+  return new Date(timestamp * 1000).toISOString();
+}
+
 export default async ({ req, res, log }) => {
   try {
     const subId = req.bodyJson.subscriptionId;
@@ -14,9 +19,9 @@ export default async ({ req, res, log }) => {
       subscription: {
         id: sub.id,
         status: sub.status,
-        currentPeriodStart: sub.current_period_start,
-        currentPeriodEnd: sub.current_period_end,
-        billingCycleAnchor: sub.billing_cycle_anchor,
+        currentPeriodStart: stripeTimestampToISO(sub.current_period_start),
+        currentPeriodEnd: stripeTimestampToISO(sub.current_period_end),
+        billingCycleAnchor: stripeTimestampToISO(sub.billing_cycle_anchor),
         priceId: sub.items.data[0].price.id,
         productId: sub.items.data[0].price.product,
       },

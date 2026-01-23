@@ -15,10 +15,10 @@ const sidebarMaxWidth = $(".sidebar").css("width");
 
 function setNavButtonState($btn, state) {
   const targetBgColor = getCssValueFromVarName(
-    "var(--_all-colors---dark--backgroundtones--80)"
+    "var(--_all-colors---dark--backgroundtones--80)",
   );
   const targetFgColor = getCssValueFromVarName(
-    "var(--_all-colors---dark--foreground)"
+    "var(--_all-colors---dark--foreground)",
   );
 
   switch (state) {
@@ -45,7 +45,7 @@ $("#logOutButton")
           if (response) {
             window.location.href = CONFIG.baseUrl;
           }
-        }
+        },
       );
     } catch (err) {
       renderToast("Oops!", getErrorMessage(err), "negative");
@@ -86,7 +86,7 @@ $("#infoCardsButton")
           yPercent: 0,
           stagger: 0.1,
         },
-        "<"
+        "<",
       );
   });
 
@@ -120,7 +120,7 @@ $(".sidebar-info-wrapper")
           yPercent: 50,
           stagger: 0.1,
         },
-        "<"
+        "<",
       );
   });
 
@@ -142,7 +142,7 @@ $(".sidebar-info-list-item").each((index, elem) => {
               x: 2,
               y: -2,
             },
-            "<"
+            "<",
           );
       }
     });
@@ -158,7 +158,7 @@ $(".sidebar-info-list-item").each((index, elem) => {
             x: 0,
             y: 0,
           },
-          "<"
+          "<",
         );
       }
     });
@@ -171,19 +171,21 @@ async function bindDataToInfoCards() {
     const data = response.client.documents[0];
     const avatar = await getFilePreview(
       APPWRITE.buckets.clientFiles.id,
-      data.avatar_file_id
+      data.avatar_file_id,
     );
     const subscriptionsRes = await getContinuityPackageData();
-    const subscriptionData = subscriptionsRes.documents[0];
+    const dbSubData = subscriptionsRes.databaseRes.documents[0];
+    const stripeSubData = subscriptionsRes.stripeRes;
+    console.log(stripeSubData);
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
       "client-info-partner-since": formatShortDate(data.collab_start),
-      "client-info-continuity-package": subscriptionData.continuityPackage.name,
+      "client-info-continuity-package": dbSubData.continuityPackage.name,
       "client-info-contract-period-start": formatShortDate(data.contract_start),
       "client-info-contract-period-end": formatShortDate(data.contract_end),
       "client-info-billing-period-end": formatShortDate(
-        subscriptionData.billing_period_end_date
+        stripeSubData.currentPeriodEnd,
       ),
     });
 
@@ -191,7 +193,7 @@ async function bindDataToInfoCards() {
     // —— Fetch from storage bucket
     $(".sidebar-info-card-list-item-client-avatar-badge").css(
       "backgroundImage",
-      `url(${avatar})`
+      `url(${avatar})`,
     );
     // —— Change bg image
     const pkgBadge = $(".continuity-package-badge");
@@ -237,10 +239,10 @@ $(".sidebar-nav-button").each((index, elem) => {
   const $btn = $(elem);
 
   const targetFgColor = getCssValueFromVarName(
-    "var(--_all-colors---dark--foreground)"
+    "var(--_all-colors---dark--foreground)",
   );
   const originalFgColor = getCssValueFromVarName(
-    "var(--_all-colors---dark--foregroundtones--75)"
+    "var(--_all-colors---dark--foregroundtones--75)",
   );
 
   $btn.on(`mouseenter${NS}`, function () {
@@ -285,16 +287,16 @@ const hoverDefaults = {
 
 const colors = {
   targetRegularBg: getCssValueFromVarName(
-    "var(--_all-colors---dark--backgroundtones--75)"
+    "var(--_all-colors---dark--backgroundtones--75)",
   ),
   targetRegularFg: getCssValueFromVarName(
-    "var(--_all-colors---dark--foreground)"
+    "var(--_all-colors---dark--foreground)",
   ),
   targetLogOutBg: getCssValueFromVarName(
-    "var(--_all-colors---feedback--negative--background)"
+    "var(--_all-colors---feedback--negative--background)",
   ),
   targetLogOutFg: getCssValueFromVarName(
-    "var(--_all-colors---feedback--negative--foreground)"
+    "var(--_all-colors---feedback--negative--foreground)",
   ),
 };
 
