@@ -19,3 +19,19 @@ export async function getSubscriptionFromStripe(subscriptionId) {
     throw err;
   }
 }
+
+export async function createPortalSessions(customerId, returnUrl) {
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.createPortalSession,
+      JSON.stringify({ customerId: customerId, returnUrl: returnUrl }),
+      false,
+    );
+
+    const data = execution.responseBody && JSON.parse(execution.responseBody);
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}

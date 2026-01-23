@@ -31,6 +31,7 @@ export const APPWRITE = {
 
   functions: {
     getSubscription: "69722558002ef4dae81e",
+    createPortalSession: "69738875002716066928",
   },
 
   databases: {
