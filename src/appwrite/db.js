@@ -87,11 +87,11 @@ export async function getContinuityPackageData() {
       ],
     );
 
-    const stripeRes = await getSubscriptionFromStripe(
+    const stripe = await getSubscriptionFromStripe(
       subsRes?.documents[0]?.stripe_subscription_id,
     );
 
-    return { databaseRes: subsRes, stripeRes: stripeRes.subscription };
+    return { appwrite: subsRes, stripe: stripe.subscription };
   } catch (err) {
     console.error(err);
     throw err;
@@ -124,11 +124,13 @@ export async function getContinuityTimeInfo() {
   try {
     // Fetch raw data
     const timelogs = await getTimeLogs();
-    const subscriptionData = await getContinuityPackageData();
+    const continuityPackageRes = await getContinuityPackageData();
+    const subscriptionDbRes = continuityPackageRes.appwrite;
+    const subscriptionStripeRes = continuityPackageRes.stripe;
 
     // Shortcut (geen extra call)
     const packageData =
-      subscriptionData?.documents?.[0]?.continuityPackage ?? null;
+      subscriptionDbRes?.documents?.[0]?.continuityPackage ?? null;
 
     let spentHours = 0;
     let spentConsultingHours = 0;
@@ -140,8 +142,8 @@ export async function getContinuityTimeInfo() {
       if (
         isBetweenDates(
           log?.date,
-          subscriptionData?.documents[0]?.billing_period_start_date,
-          subscriptionData?.documents[0]?.billing_period_end_date,
+          subscriptionStripeRes?.currentPeriodStart,
+          subscriptionStripeRes?.currentPeriodEnd,
         )
       ) {
         if (log?.isReservedConsultingSessions) {
@@ -163,7 +165,7 @@ export async function getContinuityTimeInfo() {
     return {
       // Raw data (no duplication)
       timelogs,
-      subscriptionData,
+      continuityPackageRes,
 
       // Aggregates
       spentHours,

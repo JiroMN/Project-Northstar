@@ -174,9 +174,8 @@ async function bindDataToInfoCards() {
       data.avatar_file_id,
     );
     const subscriptionsRes = await getContinuityPackageData();
-    const dbSubData = subscriptionsRes.databaseRes.documents[0];
-    const stripeSubData = subscriptionsRes.stripeRes;
-    console.log(stripeSubData);
+    const dbSubData = subscriptionsRes.appwrite.documents[0];
+    const stripeSubData = subscriptionsRes.stripe;
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
@@ -197,7 +196,7 @@ async function bindDataToInfoCards() {
     );
     // —— Change bg image
     const pkgBadge = $(".continuity-package-badge");
-    switch (subscriptionData.continuityPackage.name) {
+    switch (dbSubData.continuityPackage.name) {
       case "Continuity Essential":
         pkgBadge.addClass("essential");
         break;

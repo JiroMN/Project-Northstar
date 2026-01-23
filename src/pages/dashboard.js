@@ -23,7 +23,7 @@ export async function processContinuityInfo() {
     const continuityTimeInfo = await getContinuityTimeInfo();
 
     const packageData =
-      continuityTimeInfo.subscriptionData.documents[0].continuityPackage;
+      continuityTimeInfo.continuityPackageRes.appwrite.documents[0];
 
     const spentHours = continuityTimeInfo.spentHours;
     const spentConsultingHours = continuityTimeInfo.spentConsultingHours;
@@ -59,14 +59,14 @@ export async function processContinuityInfo() {
     const totalHours = continuityTimeInfo.totalFreeHours;
 
     applyTextBindings($(".dashboard-hero"), {
-      "hero-package": packageData.name,
+      "hero-package": packageData.continuityPackage.name,
       "spent-hours": spentHours.toString(),
-      "free-hours": totalHours,
+      "free-hours": totalHours.toString(),
     });
 
     const hoursLeft = totalHours - spentHours;
     const billingPeriodEnd =
-      continuityTimeInfo.subscriptionData.documents[0].billing_period_end_date;
+      continuityTimeInfo.continuityPackageRes.stripe.currentPeriodEnd;
 
     applyTextBindings($(".action-card-top.continuity"), {
       "action-card-continuity-hours-left": hoursLeft.toString(),
