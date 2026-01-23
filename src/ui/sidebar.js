@@ -182,7 +182,6 @@ async function bindDataToInfoCards() {
     const subscriptionsRes = await getContinuityPackageData();
     const dbSubData = subscriptionsRes.appwrite.documents[0];
     const stripeSubData = subscriptionsRes.stripe;
-    console.log(stripeSubData);
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
@@ -203,7 +202,7 @@ async function bindDataToInfoCards() {
     );
     // —— Change bg image
     const pkgBadge = $(".continuity-package-badge");
-    // pkgBadge.css("background-image", `url(${stripeSubData})`);
+    pkgBadge.css("background-image", `url(${stripeSubData.product.images[0]})`);
   } catch (err) {
     console.error(err);
     renderToast("Oops!", getErrorMessage(err), "negative");
@@ -273,6 +272,27 @@ $(".sidebar-nav-button").each((index, elem) => {
       overwrite: "auto",
     });
   });
+});
+
+$(".sidebar-nav-button-upgrade-cta").each((__, btn) => {
+  const $btn = $(btn);
+
+  $btn
+    .off("mouseenter.hoverUpgradeCta")
+    .on("mouseenter.hoverUpgradeCta", function () {
+      gsap.to($btn, {
+        borderColor: getCssValueFromVarName(
+          "var(--_all-colors---service-color--continuity--foreground-50)",
+        ),
+      });
+    });
+  $btn
+    .off("mouseleave.hoverUpgradeCta")
+    .on("mouseleave.hoverUpgradeCta", function () {
+      gsap.to($btn, {
+        borderColor: getCssValueFromVarName("var(--background--95)"),
+      });
+    });
 });
 
 // —— Bottom Action Buttons
