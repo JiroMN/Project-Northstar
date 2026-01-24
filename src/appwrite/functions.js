@@ -35,3 +35,16 @@ export async function createPortalSession(customerId, returnUrl) {
     throw err;
   }
 }
+
+export async function getAllStripeProducts() {
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.getStripeProducts,
+    );
+    const data = execution.responseBody && JSON.parse(execution.responseBody);
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}

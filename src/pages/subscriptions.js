@@ -1,10 +1,13 @@
 import { checkAuth, checkContinuityAccess } from "../appwrite/auth";
+import { getAllStripeProducts } from "../appwrite/functions";
 import { applyTextBindings } from "../utils/dataBinding";
 
 await checkAuth();
 const continuityAccess = await checkContinuityAccess(false, false, true);
+const stripeProducts = await getAllStripeProducts();
 
 console.log(continuityAccess);
+console.log(stripeProducts);
 
 function renderData() {
   if (continuityAccess) {
@@ -25,3 +28,5 @@ function renderData() {
     });
   }
 }
+
+// renderData();

@@ -8,7 +8,7 @@ export default async ({ req, res, log }) => {
     const products = await stripe.products.list(
       { limit: 10 },
       {
-        expand: ["default_price"],
+        expand: ["data.default_price"],
       },
     );
 
@@ -16,6 +16,7 @@ export default async ({ req, res, log }) => {
 
     return res.json({
       ok: true,
+      products: products.data,
     });
   } catch (error) {
     log("Stripe error:", error.message);
