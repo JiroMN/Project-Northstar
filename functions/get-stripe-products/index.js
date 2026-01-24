@@ -5,12 +5,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_TEST_KEY);
 
 export default async ({ req, res, log }) => {
   try {
-    const products = await stripe.products.list(
-      { limit: 10 },
-      {
-        expand: ["data.default_price"],
-      },
-    );
+    const products = await stripe.products.list({
+      limit: 10,
+      expand: ["data.default_price"],
+    });
 
     log(products);
 
