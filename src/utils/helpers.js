@@ -15,7 +15,7 @@ export function getErrorMessage(error, fallback = ERRORS.fallback) {
 
 export function getCssValueFromVarName(
   varName,
-  scope = document.documentElement
+  scope = document.documentElement,
 ) {
   if (!varName) return null;
 
@@ -36,7 +36,7 @@ export function convertRemToPx(remValue) {
   if (!Number.isFinite(rem)) return 0;
 
   const htmlFontSize = parseFloat(
-    getComputedStyle(document.documentElement).fontSize
+    getComputedStyle(document.documentElement).fontSize,
   );
 
   return rem * htmlFontSize;
@@ -226,7 +226,7 @@ export function formatColorValue(format, value) {
 
     // Round to whole percentages as requested
     return `cmyk(${Math.round(c)}%, ${Math.round(m)}%, ${Math.round(
-      y
+      y,
     )}%, ${Math.round(k)}%)`;
   }
 
@@ -338,4 +338,8 @@ export function formatBytes(bytes, decimals = 2) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+}
+
+export function stripePriceToEuroFormat(unitAmount) {
+  return unitAmount / 100;
 }

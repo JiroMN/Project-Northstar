@@ -181,6 +181,18 @@ export async function getContinuityTimeInfo() {
     throw err;
   }
 }
+export async function getAllContinuityPackages() {
+  try {
+    const response = await getCollection(
+      APPWRITE.databases.continuity.id,
+      APPWRITE.databases.continuity.collections.packages.id,
+    );
+
+    return response;
+  } catch (err) {
+    throw err;
+  }
+}
 
 // Brand Story
 export async function getBrandStoryData() {
