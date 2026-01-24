@@ -1,5 +1,5 @@
 {
-  "name": "create-portal-session",
+  "name": "get-continuity-packages",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {

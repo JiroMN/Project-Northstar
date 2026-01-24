@@ -7,12 +7,12 @@ import {
 } from "../utils/helpers";
 import { renderModal } from "./modal";
 import { renderToast } from "./toast";
-import { getClientData, getContinuityPackageData } from "../appwrite/db";
+import { getClientData } from "../appwrite/db";
 import { applyTextBindings } from "../utils/dataBinding";
 import { getFilePreview } from "../appwrite/storage";
 import { createPortalSession } from "../appwrite/functions";
 
-const continuityAccess = await checkContinuityAccess();
+const continuityAccess = await checkContinuityAccess(false, false, true);
 
 if (!continuityAccess) {
   $(".sidebar-nav-button-upgrade-cta").css("display", "flex");
@@ -184,7 +184,7 @@ async function bindDataToInfoCards() {
       data.stripe_customer_id,
       window.location.href,
     );
-    const subscriptionsRes = await getContinuityPackageData();
+    const subscriptionsRes = continuityAccess;
     const dbSubData = subscriptionsRes.appwrite.documents[0];
     const stripeSubData = subscriptionsRes.stripe;
 

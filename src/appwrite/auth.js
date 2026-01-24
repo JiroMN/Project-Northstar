@@ -31,6 +31,7 @@ export async function checkAuth() {
 export async function checkContinuityAccess(
   redirectToDashboard = false,
   toast = false,
+  withData = false,
 ) {
   try {
     await account.get();
@@ -54,7 +55,11 @@ export async function checkContinuityAccess(
       return false;
     }
 
-    return true;
+    if (withData) {
+      return data;
+    } else {
+      return true;
+    }
   } catch (err) {
     if (toast) {
       renderToast("Geen toegang", getErrorMessage(err), "negative");
