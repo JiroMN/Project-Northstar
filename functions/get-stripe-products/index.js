@@ -5,9 +5,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_TEST_KEY);
 
 export default async ({ req, res, log }) => {
   try {
-    const product = await stripe.subscriptions.retrieve(subId);
+    const products = await stripe.products.list({ limit: 10 });
 
-    log(product);
+    log(products);
 
     return res.json({
       ok: true,
