@@ -76,7 +76,6 @@ async function processContinuityInfo() {
       "spent-hours": spentHours.toString(),
       "free-hours": totalHours,
       "days-left": daysUntil(periodEnd),
-      "contract-end": formatFullDate(data.contract_end),
     });
   } catch (err) {
     console.error(err);

@@ -4,21 +4,24 @@ import {
   createPortalSession,
   getAllStripeProducts,
 } from "../appwrite/functions";
-import { CONFIG } from "../config/public";
+import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import { getErrorMessage, stripePriceToEuroFormat } from "../utils/helpers";
 
 await checkAuth();
 const clientData = await getClientData();
-const continuityAccess = await checkContinuityAccess(false, false, true);
-const stripeProducts = await getAllStripeProducts();
+const continuityAccess = await withLoader(
+  checkContinuityAccess(false, false, true),
+);
+const stripeProducts = await withLoader(getAllStripeProducts());
 const allPackages = await getAllContinuityPackages();
 const portalSession = await createPortalSession(
   clientData.client.documents[0].stripe_customer_id,
   window.location.href,
 );
-console.log(portalSession);
+
+let currentlyActivePackage;
 
 const template = $("#offeringCardTemplate");
 
@@ -27,15 +30,14 @@ const template = $("#offeringCardTemplate");
 
 function renderData() {
   try {
-    const currentProduct = continuityAccess.appwrite.documents[0];
-    const currentStripeProduct = continuityAccess.stripe.product;
+    const currentStripeProduct = continuityAccess
+      ? continuityAccess.stripe.product
+      : null;
 
+    // Render all packages into HTML based on Appwrite database response
     $(allPackages.documents).each((__, pkg) => {
-      const clone = template.clone(false);
-      clone
-        .attr("id", "")
-        .css("display", "flex")
-        .attr("stripe-product-id", pkg.stripe_product_id);
+      const clone = template.clone(true);
+      clone.attr("id", "").attr("stripe-product-id", pkg.stripe_product_id);
 
       clone.appendTo(".package-offerings-container");
 
@@ -51,25 +53,37 @@ function renderData() {
     const renderedOfferings = $(".package-offering");
 
     $(stripeProducts.products).each((__, product) => {
-      const productPrice = stripePriceToEuroFormat(
-        product.default_price.unit_amount,
-      );
-
       const correspondingOfferingCard = renderedOfferings.filter((__, card) => {
         return $(card).attr("stripe-product-id") === product.id;
       });
+      const productPrice = stripePriceToEuroFormat(
+        product.default_price.unit_amount,
+      );
+      const effectiveHourlyRate =
+        productPrice /
+        parseInt(
+          correspondingOfferingCard.find("[data-bind='total-hours']").text(),
+        );
+
+      //   Only show card when there is a matching Stripe Product & Create price attribute
+      correspondingOfferingCard
+        .css("display", "flex")
+        .attr("data-price-amount", productPrice);
 
       applyTextBindings(correspondingOfferingCard, {
         title: product.name,
         description: product.description,
         price: productPrice,
         "recurring-interval": product.default_price.recurring.interval_count,
+        "eur-per-hour": effectiveHourlyRate,
       });
 
+      // Set product image
       $(correspondingOfferingCard)
         .find(".package-offering-icon")
         .css("background-image", `url(${product.images[0]})`);
 
+      // Check which package is active on account and handle button styling
       if (continuityAccess) {
         if (currentStripeProduct.id.id == product.id) {
           const button = correspondingOfferingCard.find(".button");
@@ -86,11 +100,38 @@ function renderData() {
           button.on("click", function () {
             window.location.href = portalSession.session.url;
           });
-
-          applyTextBindings(correspondingOfferingCard, {
-            action: "beheer",
-          });
+          correspondingOfferingCard.attr("data-current-package", "true");
+          currentlyActivePackage = product;
         }
+      }
+    });
+
+    // Set button text values
+    renderedOfferings.not(template).each((__, offeringsCard) => {
+      const $card = $(offeringsCard);
+      const price = $card.attr("data-price-amount");
+      const currentlyActivePackagePrice =
+        continuityAccess && currentlyActivePackage
+          ? stripePriceToEuroFormat(
+              currentlyActivePackage.default_price.unit_amount,
+            )
+          : null;
+      let text = "Selecteer";
+
+      if ($card.attr("data-current-package") === "true") {
+        applyTextBindings($card, {
+          action: "beheer",
+        });
+      } else {
+        if (price < currentlyActivePackagePrice) {
+          //   Check if offering is an upgrade or a downgrade based on value
+          text = "Downgrade";
+        } else if (price > currentlyActivePackagePrice) {
+          text = "Upgrade";
+        }
+        applyTextBindings($card, {
+          action: text,
+        });
       }
     });
   } catch (err) {

@@ -16,6 +16,7 @@ const continuityAccess = await checkContinuityAccess(false, false, true);
 
 if (!continuityAccess) {
   $(".sidebar-nav-button-upgrade-cta").css("display", "flex");
+  $("[data-is-subscription-depended]").remove();
 }
 
 const sidebarMaxWidth = $(".sidebar").css("width");
@@ -184,19 +185,18 @@ async function bindDataToInfoCards() {
       data.stripe_customer_id,
       window.location.href,
     );
-    const subscriptionsRes = continuityAccess;
-    const dbSubData = subscriptionsRes.appwrite.documents[0];
-    const stripeSubData = subscriptionsRes.stripe;
+    const dbSubData = continuityAccess
+      ? continuityAccess.appwrite.documents[0]
+      : null;
+    const stripeSubData = continuityAccess ? continuityAccess.stripe : null;
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
       "client-info-partner-since": formatShortDate(data.collab_start),
-      "client-info-continuity-package": dbSubData.continuityPackage.name,
-      "client-info-contract-period-start": formatShortDate(data.contract_start),
-      "client-info-contract-period-end": formatShortDate(data.contract_end),
-      "client-info-billing-period-end": formatShortDate(
-        stripeSubData.currentPeriodEnd,
-      ),
+      "client-info-continuity-package":
+        continuityAccess && dbSubData.continuityPackage.name,
+      "client-info-billing-period-end":
+        continuityAccess && formatShortDate(stripeSubData.currentPeriodEnd),
     });
 
     // Set images
@@ -206,8 +206,13 @@ async function bindDataToInfoCards() {
       `url(${avatar})`,
     );
     // —— Change bg image
-    const pkgBadge = $(".continuity-package-badge");
-    pkgBadge.css("background-image", `url(${stripeSubData.product.images[0]})`);
+    if (continuityAccess) {
+      const pkgBadge = $(".continuity-package-badge");
+      pkgBadge.css(
+        "background-image",
+        `url(${stripeSubData.product.images[0]})`,
+      );
+    }
 
     // Link Portal Session
     $("#manageBilling").attr("href", portalSession.session.url);

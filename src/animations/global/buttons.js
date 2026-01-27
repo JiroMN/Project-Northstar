@@ -54,7 +54,7 @@ $(".button, .button-md, .icon-button").each(function () {
     if ($btn.attr("data-disabled") === "true") return;
 
     gsap.to($btn, {
-      autoAlpha: 0.65,
+      opacity: 0.65,
       duration: 0.2,
       ease: "power1.out",
       overwrite: "auto",
@@ -66,7 +66,7 @@ $(".button, .button-md, .icon-button").each(function () {
     if ($btn.attr("data-disabled") === "true") return;
 
     gsap.to($btn, {
-      autoAlpha: 1,
+      opacity: 1,
       duration: 0.2,
       ease: "power1.out",
       overwrite: "auto",
