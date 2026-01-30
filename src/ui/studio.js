@@ -1,9 +1,10 @@
-// Handles (custom) inputs such as relationship selectors
-
 import { getCollection } from "../appwrite/db";
-import { RELATIONSHIPSELECTORS } from "../config/relationshipSelectorRegistry";
+import { RELATIONSHIPSELECTORS, SELECTS } from "../config/optionRegistry";
 import { applyTextBindings } from "../utils/dataBinding";
 import { getCssValueFromVarName } from "../utils/helpers";
+
+// Client Selector
+const clientSelector = $(".client-selector");
 
 // Relationship Selectors
 const relationshipSelector = $(".relationship-input");
@@ -33,7 +34,7 @@ relationshipSelector.each(async (__, relationshipSelector) => {
     relRegistryItem.collectionId,
   );
 
-  // Logic
+  // Relationship Logic
   function handleSelect(id) {
     if (isMultiple) {
       if (!selectedItems.includes(id)) {
@@ -277,5 +278,23 @@ checkboxes.each((__, checkbox) => {
     e.preventDefault();
     const nextChecked = !$input.prop("checked");
     $input.prop("checked", nextChecked).trigger("change");
+  });
+});
+
+// Select Input
+const selects = $(".select");
+
+selects.each((__, select) => {
+  const $select = $(select);
+  const selectKey = $select.attr("data-select-key");
+  const selectObj = SELECTS[selectKey];
+  const options = selectObj.options;
+
+  applyTextBindings($select.find("option"), {
+    "select-placeholder": selectObj.placeholder,
+  });
+
+  $(options).each((__, option) => {
+    $select.append(`<option value='${option.value}' >${option.label}</option>`);
   });
 });

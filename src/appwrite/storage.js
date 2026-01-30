@@ -31,3 +31,12 @@ export async function getFileDownload(bucketId, fileId) {
     throw err;
   }
 }
+
+export async function uploadFile(buckedId, clientId) {
+  try {
+    const response = storage.createFile(buckedId, clientId);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
