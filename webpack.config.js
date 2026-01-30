@@ -24,6 +24,7 @@ module.exports = {
     ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
     ["pages/login"]: "./src/pages/login.js",
     ["ui/studio/general"]: "./src/ui/studio/general.js",
+    ["ui/studio/previewSheet"]: "./src/ui/studio/previewSheet.js",
     ["ui/studio/clientSelector"]: "./src/ui/studio/clientSelector.js",
     ["ui/studio/relationshipSelector"]:
       "./src/ui/studio/relationshipSelector.js",

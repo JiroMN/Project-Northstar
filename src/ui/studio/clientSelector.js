@@ -27,7 +27,6 @@ clientSelector.each(async (__, selector) => {
   let isOpened = isOpenedAttr === "true";
   // Data
   const allClients = await getAllClients();
-  console.log(allClients);
 
   $(allClients.database).each((__, client) => {
     const clone = listItemTemplate.clone(true);

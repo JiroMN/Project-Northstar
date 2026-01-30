@@ -19,6 +19,15 @@ export async function getCollection(databaseId, collectionId, queries) {
   }
 }
 
+export async function removeRow(databaseId, collectionId, rowId) {
+  try {
+    return await databases.deleteDocument(databaseId, collectionId, rowId);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
 // Resources
 export async function gatherGoogleDriveURL() {
   try {

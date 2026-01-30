@@ -1,8 +1,19 @@
+import { Query } from "appwrite";
+import { getCollection } from "../../appwrite/db";
+import APPWRITE from "../../config/public";
+import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { gatherFormData } from "../../utils/studioHelpers";
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
 const showDataBtn = $("#showData");
+
+const colorTokens = await getCollection(
+  APPWRITE.databases.colorSystem.id,
+  APPWRITE.databases.colorSystem.collections.tokens.id,
+  [Query.select(["*", "colorPalette.title"]), Query.orderDesc("$updatedAt")],
+);
+console.log(colorTokens);
 
 let initialData = {};
 let submittedData = {};
@@ -15,6 +26,13 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
   submittedData = gatherFormData(form);
 });
 
+showDataBtn.off("click.showData").on("click.showData", function () {
+  console.log("Clicked ShowData...");
+  openPreviewSheet("Kleuren", colorTokens.documents, ["title", "tone"], {
+    relation: "colorPalette",
+    key: "title",
+  });
+});
 resetBtn.off("click.reset").on("click.reset", function () {
   console.log("Clicked Reset...");
 });

@@ -64,7 +64,7 @@ export async function checkContinuityAccess(
     if (toast) {
       renderToast("Geen toegang", getErrorMessage(err), "negative");
     }
-    // window.location.href = `${CONFIG.baseUrl}/login`;
+    window.location.href = `${CONFIG.baseUrl}/login`;
     return false;
   }
 }
