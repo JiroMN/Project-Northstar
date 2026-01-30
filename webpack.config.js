@@ -23,7 +23,10 @@ module.exports = {
     ["pages/subscriptions"]: "./src/pages/subscriptions.js",
     ["pages/login/activateMagicUrl"]: "./src/pages/login/activateMagicUrl.js",
     ["pages/login"]: "./src/pages/login.js",
-    ["ui/studio"]: "./src/ui/studio.js",
+    ["ui/studio/general"]: "./src/ui/studio/general.js",
+    ["ui/studio/clientSelector"]: "./src/ui/studio/clientSelector.js",
+    ["ui/studio/relationshipSelector"]:
+      "./src/ui/studio/relationshipSelector.js",
     ["ui/toast"]: "./src/ui/toast.js",
     ["ui/modal"]: "./src/ui/modal.js",
     ["ui/sidebar"]: "./src/ui/sidebar.js",

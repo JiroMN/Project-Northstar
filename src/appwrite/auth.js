@@ -64,7 +64,7 @@ export async function checkContinuityAccess(
     if (toast) {
       renderToast("Geen toegang", getErrorMessage(err), "negative");
     }
-    window.location.href = `${CONFIG.baseUrl}/login`;
+    // window.location.href = `${CONFIG.baseUrl}/login`;
     return false;
   }
 }
@@ -109,6 +109,7 @@ export async function getMyTeams() {
     const response = await teams.list();
     return { me, team: response.teams };
   } catch (err) {
+    console.error(err);
     throw err;
   }
 }

@@ -5,6 +5,7 @@ import { getMyTeams } from "./auth";
 import APPWRITE from "../config/public";
 import { getFile, getFileDownload, getFilePreview } from "./storage";
 import { isBetweenDates } from "../utils/helpers";
+import { pickContextTeam } from "../utils/databaseHelpers";
 
 const databases = new Databases(client);
 
@@ -38,11 +39,13 @@ export async function gatherGoogleDriveURL() {
 export async function getClientData() {
   try {
     const myTeamRes = await getMyTeams();
+    const contextTeam = pickContextTeam(myTeamRes.team);
+    const teamId = contextTeam?.$id;
     if (myTeamRes.team.length > 0) {
       const clientTableResponse = await getCollection(
         APPWRITE.databases.accounts.id,
         APPWRITE.databases.accounts.collections.clients.id,
-        [Query.equal("team_id", myTeamRes.team[0].$id)],
+        [Query.equal("team_id", teamId)],
       );
 
       return { client: clientTableResponse, teams: myTeamRes };
@@ -58,17 +61,37 @@ export async function getClientData() {
 export async function getClientId() {
   try {
     const myTeamRes = await getMyTeams();
+    const contextTeam = pickContextTeam(myTeamRes.team);
+    const teamId = contextTeam?.$id;
     if (myTeamRes.team.length > 0) {
       const clientTableResponse = await getCollection(
         APPWRITE.databases.accounts.id,
         APPWRITE.databases.accounts.collections.clients.id,
-        [Query.equal("team_id", myTeamRes.team[0].$id)],
+        [Query.equal("team_id", teamId)],
       );
 
       return clientTableResponse.documents[0].$id;
     } else {
       throw { message: "No teams assigned to this client." };
     }
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export async function getAllClients() {
+  try {
+    const myTeams = await getMyTeams();
+    const teamIds = myTeams.team.map((t) => t.$id);
+
+    const res = await getCollection(
+      APPWRITE.databases.accounts.id,
+      APPWRITE.databases.accounts.collections.clients.id,
+      [Query.equal("team_id", teamIds)],
+    );
+
+    return { auth: myTeams.team, database: res.documents };
   } catch (err) {
     console.error(err);
     throw err;
