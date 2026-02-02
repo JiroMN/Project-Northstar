@@ -10,7 +10,21 @@ module.exports = {
     ["config/public"]: "./src/config/public.js",
     ["global/globals"]: "./src/global/globals.js",
     ["index"]: "./src/index.js",
+
     ["pages/studio/testPage"]: "./src/pages/studio/testPage.js",
+    ["pages/studio/clientManagement"]: "./src/pages/studio/clientManagement.js",
+    ["pages/studio/userManagement"]: "./src/pages/studio/userManagement.js",
+    ["pages/studio/dashboard"]: "./src/pages/studio/dashboard.js",
+    ["pages/studio/brandEssence"]: "./src/pages/studio/brandEssence.js",
+    ["pages/studio/brandStory"]: "./src/pages/studio/brandStory.js",
+    ["pages/studio/logoSystem"]: "./src/pages/studio/logoSystem.js",
+    ["pages/studio/typographySystem"]: "./src/pages/studio/typographySystem.js",
+    ["pages/studio/typographyCommunication"]:
+      "./src/pages/studio/typographyCommunication.js",
+    ["pages/studio/colorSystem"]: "./src/pages/studio/colorSystem.js",
+    ["pages/studio/gallery"]: "./src/pages/studio/testPage.js",
+    ["pages/studio/continuity"]: "./src/pages/studio/continuity.js",
+
     ["pages/dashboard"]: "./src/pages/dashboard.js",
     ["pages/continuity"]: "./src/pages/continuity.js",
     ["pages/colorSystem"]: "./src/pages/colorSystem.js",

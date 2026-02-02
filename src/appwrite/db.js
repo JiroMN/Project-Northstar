@@ -19,6 +19,15 @@ export async function getCollection(databaseId, collectionId, queries) {
   }
 }
 
+export async function createDocument(databaseId, collectionId, queries) {
+  try {
+    return await databases.createDocument(databaseId, collectionId, queries);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
 export async function removeRow(databaseId, collectionId, rowId) {
   try {
     return await databases.deleteDocument(databaseId, collectionId, rowId);

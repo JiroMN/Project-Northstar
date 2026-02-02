@@ -27,10 +27,6 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
 showDataBtn.off("click.showData").on("click.showData", function () {
   console.log("Clicked ShowData...");
-  openPreviewSheet("Kleuren", colorTokens.documents, ["title", "tone"], {
-    relation: "colorPalette",
-    key: "title",
-  });
 });
 resetBtn.off("click.reset").on("click.reset", function () {
   console.log("Clicked Reset...");

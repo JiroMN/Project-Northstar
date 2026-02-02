@@ -36,6 +36,22 @@ export async function createPortalSession(customerId, returnUrl) {
   }
 }
 
+export async function createUser(customerId, returnUrl) {
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.createPortalSession,
+      JSON.stringify({ customerId: customerId, returnUrl: returnUrl }),
+      false,
+    );
+
+    const data = execution.responseBody && JSON.parse(execution.responseBody);
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getAllStripeProducts() {
   try {
     const execution = await functions.createExecution(
