@@ -44,8 +44,7 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
   // console.log(submittedData);
   // console.log(logoAvatarUpload, brandbookUpload, logoSystemBackdropUpload);
 
-  // const addCompanyRes =
-  await addCompany({
+  const addCompanyRes = await addCompany({
     form: submittedData.data,
     files: {
       logoAvatar: logoAvatarUpload,
@@ -54,6 +53,8 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
     },
     brandDirector: await checkAuth(),
   });
+
+  console.log(addCompanyRes);
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {

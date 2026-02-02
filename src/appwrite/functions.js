@@ -37,9 +37,8 @@ export async function createPortalSession(customerId, returnUrl) {
 }
 
 export async function addCompany(data) {
-  console.log("[addCompany.js] ", data);
   try {
-    console.log("[addCompany.js] ", data);
+    console.log(data);
 
     const documentData = {
       name: data.form.companyName,
@@ -61,9 +60,10 @@ export async function addCompany(data) {
       false,
     );
 
-    const data = execution.responseBody && JSON.parse(execution.responseBody);
+    const responseData =
+      execution.responseBody && JSON.parse(execution.responseBody);
 
-    return data;
+    return responseData;
   } catch (err) {
     throw err;
   }

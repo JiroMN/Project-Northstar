@@ -55,6 +55,9 @@ export default async ({ req, res, log }) => {
 
     return res.json({
       ok: true,
+      team: createTeam,
+      documents: createDocument,
+      brandDirector: createMembership,
     });
   } catch (error) {
     log("Appwrite error:", error.message);
