@@ -1,5 +1,3 @@
-import addCompany from "../../functions/add-company";
-
 export const ERRORS = {
   codes: {
     400: "Invalid request. Please check your input.",

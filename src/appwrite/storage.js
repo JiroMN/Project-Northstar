@@ -1,4 +1,4 @@
-import { Storage } from "appwrite";
+import { ID, Storage } from "appwrite";
 import { client } from "./client";
 
 const storage = new Storage(client);
@@ -32,9 +32,30 @@ export async function getFileDownload(bucketId, fileId) {
   }
 }
 
-export async function uploadFile(buckedId, clientId) {
+export async function uploadFile(
+  bucketId,
+  file,
+  permissions = [],
+  onProgress = undefined,
+) {
   try {
-    const response = storage.createFile(buckedId, clientId);
+    // Accept File | FileList | File[]
+    const resolvedFile = Array.isArray(file) ? file[0] : (file?.[0] ?? file);
+
+    if (!resolvedFile) {
+      throw new Error("uploadFile: missing file");
+    }
+
+    const response = await storage.createFile({
+      bucketId,
+      fileId: ID.unique(),
+      file: resolvedFile,
+      permissions,
+      // Appwrite Web SDK supports a progress callback; it updates in ~5MB steps for chunked uploads.
+      onProgress,
+    });
+
+    return response;
   } catch (err) {
     console.error(err);
     throw err;
