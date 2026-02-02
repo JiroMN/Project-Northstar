@@ -1,18 +1,18 @@
 import { Query } from "appwrite";
-import { getCollection } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { gatherFormData } from "../../utils/studioHelpers";
+import { addCompany } from "../../appwrite/functions";
+import { checkAuth } from "../../appwrite/auth";
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
 const showDataBtn = $("#showData");
 
-const colorTokens = await getCollection(
-  APPWRITE.databases.colorSystem.id,
-  APPWRITE.databases.colorSystem.collections.tokens.id,
-  [Query.select(["*", "colorPalette.title"]), Query.orderDesc("$updatedAt")],
-);
+console.log("Hello from cMan.js");
+console.log(await checkAuth());
+
+// const addCompany = await addCompany(await check);
 
 let initialData = {};
 let submittedData = {};

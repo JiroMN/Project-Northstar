@@ -1,0 +1,1 @@
+!function(o,t){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("pages/studio/typographyCommunication",[],t):"object"==typeof exports?exports["pages/studio/typographyCommunication"]={}:o["pages/studio/typographyCommunication"]={}}(this,()=>({}));

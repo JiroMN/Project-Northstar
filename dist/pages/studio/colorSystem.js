@@ -1,0 +1,1 @@
+!function(e,o){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("pages/studio/colorSystem",[],o):"object"==typeof exports?exports["pages/studio/colorSystem"]={}:e["pages/studio/colorSystem"]={}}(this,()=>({}));

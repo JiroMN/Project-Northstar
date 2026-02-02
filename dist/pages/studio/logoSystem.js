@@ -1,0 +1,1 @@
+!function(e,o){"object"==typeof exports&&"object"==typeof module?module.exports={}:"function"==typeof define&&define.amd?define("pages/studio/logoSystem",[],o):"object"==typeof exports?exports["pages/studio/logoSystem"]={}:e["pages/studio/logoSystem"]={}}(this,()=>({}));

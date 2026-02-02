@@ -2,5 +2,7 @@
   "name": "add-company",
   "version": "1.0.0",
   "type": "module",
-  "dependencies": {}
+  "dependencies": {
+    "node-appwrite": "^18.0.0"
+  }
 }
