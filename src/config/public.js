@@ -1,3 +1,5 @@
+import addCompany from "../../functions/add-company";
+
 export const ERRORS = {
   codes: {
     400: "Invalid request. Please check your input.",
@@ -33,6 +35,7 @@ export const APPWRITE = {
     getSubscription: "69722558002ef4dae81e",
     createPortalSession: "69738875002716066928",
     getStripeProducts: "6974b9800007630ad391",
+    addCompany: "6980a1d00007b504bd1b",
   },
 
   databases: {

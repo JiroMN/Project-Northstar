@@ -1,5 +1,10 @@
 export default async ({ req, res, log }) => {
   try {
+    const session = req.bodyJson.session;
+    const teamName = req.bodyJson.teamName;
+
+    log(session, teamName);
+
     return res.json({
       ok: true,
     });

@@ -36,11 +36,11 @@ export async function createPortalSession(customerId, returnUrl) {
   }
 }
 
-export async function createUser(customerId, returnUrl) {
+export async function addCompany(session, teamName) {
   try {
     const execution = await functions.createExecution(
-      APPWRITE.functions.createPortalSession,
-      JSON.stringify({ customerId: customerId, returnUrl: returnUrl }),
+      APPWRITE.functions.addCompany,
+      JSON.stringify({ session: session, teamName: teamName }),
       false,
     );
 
