@@ -37,6 +37,7 @@ export async function createPortalSession(customerId, returnUrl) {
 }
 
 export async function addCompany(data) {
+  console.log("[addCompany.js] ", data);
   try {
     console.log("[addCompany.js] ", data);
 
@@ -49,7 +50,7 @@ export async function addCompany(data) {
       logo_system_backdrop_file_id: data.files.logoSystemBackdrop.$id,
     };
 
-    console.log("[addCompany.js] ", documentData);
+    console.log(documentData);
 
     const execution = await functions.createExecution(
       APPWRITE.functions.addCompany,
