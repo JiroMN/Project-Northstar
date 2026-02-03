@@ -3,7 +3,7 @@ import { getClientById, getCollection } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { gatherFormData } from "../../utils/studioHelpers";
-import { addUser } from "../../appwrite/functions";
+import { addUser, removeUser } from "../../appwrite/functions";
 import { renderToast } from "../../ui/toast";
 import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
@@ -67,11 +67,18 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
   }
 });
 
-showDataBtn.off("click.showData").on("click.showData", function () {
+showDataBtn.off("click.showData").on("click.showData", async function () {
   console.log("Clicked ShowData...");
-  openPreviewSheet("Gebruikers", initialData.documents, ["name"], {
-    relation: "client",
-    key: "name",
+  openPreviewSheet({
+    sheetTitle: "Gebruikers",
+    data: initialData.documents,
+    labelKeys: ["name"],
+    secondaryLabelKey: {
+      relation: "client",
+      key: "name",
+    },
+    canRemove: true,
+    alternativeRemovalFunction: await removeUser(),
   });
 });
 

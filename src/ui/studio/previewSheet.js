@@ -20,6 +20,7 @@ function renderDataInSheet(
   labelKeys = [],
   secondaryLabelKey = "",
   canRemove,
+  alternativeRemovalFunction,
 ) {
   const $data = $(data);
 
@@ -74,8 +75,13 @@ function renderDataInSheet(
             `Je wilt ${primaryLabel} verwijderen. Deze actie kan niet worden teruggedraaid.`,
             "Annuleer",
             "Verwijder",
-            async () =>
-              await removeRow(item.$databaseId, item.$collectionId, item.$id),
+            async () => {
+              if (alternativeRemovalFunction) {
+                await alternativeRemovalFunction(item.$id);
+              } else {
+                await removeRow(item.$databaseId, item.$collectionId, item.$id);
+              }
+            },
           );
         });
     } else {
@@ -90,14 +96,21 @@ function renderDataInSheet(
  * @param {string|object} params.secondaryLabelKey - Optional. Either a direct key string (e.g. "collab_start"), a relationship descriptor { relation, key }, or "" to disable.
  * @param {boolean} params.canRemove - Shows remove button based on value
  * **/
-export function openPreviewSheet(
+export function openPreviewSheet({
   sheetTitle,
   data,
   labelKeys,
   secondaryLabelKey,
   canRemove = true,
-) {
-  renderDataInSheet(data, labelKeys, secondaryLabelKey, canRemove);
+  alternativeRemovalFunction,
+}) {
+  renderDataInSheet({
+    data,
+    labelKeys,
+    secondaryLabelKey,
+    canRemove,
+    alternativeRemovalFunction,
+  });
 
   applyTextBindings(previewSheet, {
     "preview-sheet-title": sheetTitle,

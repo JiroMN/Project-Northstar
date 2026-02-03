@@ -11,16 +11,34 @@ const users = new Users(sdkClient);
 
 export default async ({ req, res, log }) => {
   try {
-    const userId = req.bodyJson.userId;
-    log(userId);
+    const userDocId = req.bodyJson.userDocId;
+    log(userDocId);
 
-    // Remove from team
+    // Fetch clientdata
+    const clientData = await databases.getDocument({
+      databaseId: "6943e20e0018e70785f8",
+      collectionId: "users",
+      documentId: userDocId,
+    });
+    log("Fetched clientData ", clientData);
 
-    // Remove form database
+    // Remove from auth
+    const removeAuthUser = await users.delete({ userId: clientData.user_id });
+    log("Removed auth user ", removeAuthUser);
+
+    // Remove from database
+    const removeDatabaseUser = await databases.deleteDocument({
+      databaseId: "6943e20e0018e70785f8",
+      collectionId: "users",
+      documentId: userDocId,
+    });
+    log("Removed db user ", removeDatabaseUser);
 
     return res.json({
       ok: true,
-      userId,
+      clientData,
+      removeAuthUser,
+      removeDatabaseUser,
     });
   } catch (error) {
     log("Appwrite error:", error.message);
