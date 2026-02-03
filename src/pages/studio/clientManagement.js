@@ -1,4 +1,3 @@
-import { Query } from "appwrite";
 import APPWRITE from "../../config/public";
 import { gatherFormData } from "../../utils/studioHelpers";
 import { checkAuth } from "../../appwrite/auth";
@@ -7,7 +6,7 @@ import logUploadProgress from "../../ui/fileUploadProgress";
 import { addCompany } from "../../appwrite/functions";
 import { setButtonState } from "../../animations/global/buttons";
 import { renderToast } from "../../ui/toast";
-import { formatDateTime, getErrorMessage } from "../../utils/helpers";
+import { getErrorMessage } from "../../utils/helpers";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { getAllClients } from "../../appwrite/db";
 
@@ -83,7 +82,6 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
 
 showDataBtn.off("click.showData").on("click.showData", function () {
   const previewData = initialData.database;
-  console.log(previewData);
   openPreviewSheet("Clients", previewData, ["name"], "", false);
 });
 resetBtn.off("click.reset").on("click.reset", function () {
