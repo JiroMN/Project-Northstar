@@ -53,7 +53,13 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
       },
       submittedData.data,
     );
-    console.log(response);
+    if (response) {
+      renderToast(
+        "Gelukt!",
+        `Gebruiker is toegevoegd aan ${selectedClientData.database.name}`,
+        "positive",
+      );
+    }
     setButtonState($(this), "enable", true);
   } catch (err) {
     console.error(err);

@@ -36,27 +36,6 @@ export async function createPortalSession(customerId, returnUrl) {
   }
 }
 
-export async function addUser(clientIds, data) {
-  try {
-    const execution = await functions.createExecution(
-      APPWRITE.functions.addUser,
-      JSON.stringify({
-        clientIds: { teamId: clientIds.teamId, clientId: clientIds.clientId },
-        userData: data,
-      }),
-      false,
-    );
-
-    const responseData =
-      execution.responseBody && JSON.parse(execution.responseBody);
-
-    return responseData;
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-}
-
 export async function addCompany(data) {
   try {
     const documentData = {
@@ -82,6 +61,47 @@ export async function addCompany(data) {
 
     return responseData;
   } catch (err) {
+    throw err;
+  }
+}
+
+export async function addUser(clientIds, data) {
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.addUser,
+      JSON.stringify({
+        clientIds: { teamId: clientIds.teamId, clientId: clientIds.clientId },
+        userData: data,
+      }),
+      false,
+    );
+
+    const responseData =
+      execution.responseBody && JSON.parse(execution.responseBody);
+
+    return responseData;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export async function removeUser(userId) {
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.removeUser,
+      JSON.stringify({
+        userId,
+      }),
+      false,
+    );
+
+    const responseData =
+      execution.responseBody && JSON.parse(execution.responseBody);
+
+    return responseData;
+  } catch (err) {
+    console.error(err);
     throw err;
   }
 }

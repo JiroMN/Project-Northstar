@@ -35,6 +35,7 @@ export const APPWRITE = {
     getStripeProducts: "6974b9800007630ad391",
     addCompany: "6980a1d00007b504bd1b",
     addUser: "6981ec6b001556993df5",
+    removeUser: "6981ffe2000e07638e0b",
   },
 
   databases: {
