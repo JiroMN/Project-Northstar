@@ -23,6 +23,12 @@ export default async ({ req, res, log }) => {
 
     const teamName = documentData.name;
 
+    if (!documentData || !brandDirector)
+      return res.json({
+        ok: false,
+        message: "No document data and/or brand director passed.",
+      });
+
     log("Running...");
 
     // Create team
@@ -60,27 +66,27 @@ export default async ({ req, res, log }) => {
       bucketId: "6953c5e200333444aafc",
       fileId: documentData.brandbook_file_id,
       permissions: [
-        Permission.read(Role.team(teamId)),
-        Permission.update(Role.team(teamId)),
-        Permission.delete(Role.team(teamId)),
+        Permission.read(Role.team(createTeam.$id)),
+        Permission.update(Role.team(createTeam.$id)),
+        Permission.delete(Role.team(createTeam.$id)),
       ],
     });
     const grantedAvatarPermissions = await storage.updateFile({
       bucketId: "6971ef4b003440c686a1",
       fileId: documentData.avatar_file_id,
       permissions: [
-        Permission.read(Role.team(teamId)),
-        Permission.update(Role.team(teamId)),
-        Permission.delete(Role.team(teamId)),
+        Permission.read(Role.team(createTeam.$id)),
+        Permission.update(Role.team(createTeam.$id)),
+        Permission.delete(Role.team(createTeam.$id)),
       ],
     });
     const grantedLogoSystemBackdropPermissions = await storage.updateFile({
       bucketId: "6971ef4b003440c686a1",
       fileId: documentData.logo_system_backdrop_file_id,
       permissions: [
-        Permission.read(Role.team(teamId)),
-        Permission.update(Role.team(teamId)),
-        Permission.delete(Role.team(teamId)),
+        Permission.read(Role.team(createTeam.$id)),
+        Permission.update(Role.team(createTeam.$id)),
+        Permission.delete(Role.team(createTeam.$id)),
       ],
     });
 
