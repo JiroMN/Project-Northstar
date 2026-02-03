@@ -4,6 +4,9 @@ import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { gatherFormData } from "../../utils/studioHelpers";
 import { addUser } from "../../appwrite/functions";
+import { renderToast } from "../../ui/toast";
+import { getErrorMessage } from "../../utils/helpers";
+import { setButtonState } from "../../animations/global/buttons";
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
@@ -18,29 +21,44 @@ let submittedData = {};
 
 submitBtn.off("click.submit").on("click.submit", async function (e) {
   e.preventDefault();
-  const selectedClientId = $("body").attr("data-selected-client-id");
-  const selectedClientData = await getClientById(selectedClientId);
-  const relatedForm = $(this).attr("data-related-form");
-  const form = $(`#${relatedForm}`);
-  let teamRoles = [];
+  try {
+    const selectedClientId = $("body").attr("data-selected-client-id");
+    if (!selectedClientId || selectedClientId == "") {
+      renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+      return;
+    }
 
-  submittedData = gatherFormData(form);
+    if ($(this).attr("data-disable") === "true") return;
+    setButtonState($(this), "loading", false);
 
-  if (submittedData.data.isBeheerder) {
-    teamRoles.push("Beheerder");
+    const selectedClientData = await getClientById(selectedClientId);
+    const relatedForm = $(this).attr("data-related-form");
+    const form = $(`#${relatedForm}`);
+    let teamRoles = [];
+
+    submittedData = gatherFormData(form);
+
+    if (submittedData.data.isBeheerder) {
+      teamRoles.push("Beheerder");
+    }
+    if (submittedData.data.isMedewerker) {
+      teamRoles.push("Medewerker");
+    }
+    submittedData.data = { ...submittedData.data, roles: teamRoles };
+    console.log(submittedData);
+    // const response = await addUser(
+    //   {
+    //     teamId: selectedClientData.auth.$id,
+    //     clientId: selectedClientData.database.$id,
+    //   },
+    //   submittedData.data,
+    // );
+    // console.log(response);
+    setButtonState($(this), "enable", true);
+  } catch (err) {
+    console.error(err);
+    renderToast("Oeps!", getErrorMessage(err), "negative");
   }
-  if (submittedData.data.isMedewerker) {
-    teamRoles.push("Medewerker");
-  }
-  submittedData.data = { ...submittedData.data, roles: teamRoles };
-
-  addUser(
-    {
-      teamId: selectedClientData.auth.$id,
-      clientId: selectedClientData.database.$id,
-    },
-    submittedData.data,
-  );
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {

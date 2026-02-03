@@ -48,7 +48,7 @@ export default async ({ req, res, log }) => {
 
     return res.json({
       ok: false,
-      error: error.message,
+      error: `[Appwrite function error] ${error.message}`,
     });
   }
 };
