@@ -98,6 +98,27 @@ export async function getClientId() {
   }
 }
 
+export async function getClientById(clientId) {
+  try {
+    const myTeams = await getMyTeams();
+
+    const res = await getCollection(
+      APPWRITE.databases.accounts.id,
+      APPWRITE.databases.accounts.collections.clients.id,
+      [Query.equal("$id", clientId)],
+    );
+
+    const filteredTeam = $(myTeams.team).filter((__, team) => {
+      return team.$id === res.documents[0].team_id;
+    });
+
+    return { auth: filteredTeam[0], database: res.documents[0] };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
 export async function getAllClients() {
   try {
     const myTeams = await getMyTeams();
