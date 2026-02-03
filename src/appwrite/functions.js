@@ -91,7 +91,7 @@ export async function removeUser(userId) {
     const execution = await functions.createExecution(
       APPWRITE.functions.removeUser,
       JSON.stringify({
-        userId,
+        userDocId: userId,
       }),
       false,
     );
