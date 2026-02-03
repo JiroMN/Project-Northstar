@@ -1,4 +1,11 @@
-import { Client, Databases, ID, Teams } from "node-appwrite";
+import {
+  Client,
+  Databases,
+  ID,
+  Storage,
+  Teams,
+  Permission,
+} from "node-appwrite";
 
 const sdkClient = new Client()
   .setEndpoint(process.env.APPWRITE_ENDPOINT)
@@ -7,6 +14,7 @@ const sdkClient = new Client()
 
 const teams = new Teams(sdkClient);
 const databases = new Databases(sdkClient);
+const storage = new Storage(sdkClient);
 
 export default async ({ req, res, log }) => {
   try {
@@ -16,7 +24,6 @@ export default async ({ req, res, log }) => {
     const teamName = documentData.name;
 
     log("Running...");
-    log(req.bodyJson);
 
     // Create team
     const createTeam = await teams.create({
@@ -24,8 +31,7 @@ export default async ({ req, res, log }) => {
       name: teamName,
       roles: ["Brand_Director", "Beheerder", "Medewerker"],
     });
-    log("Created Team:");
-    log(createTeam);
+    log("Created Team...");
 
     // Add Brand Director Membership
     const createMembership = await teams.createMembership({
@@ -35,8 +41,7 @@ export default async ({ req, res, log }) => {
       userId: brandDirector.$id,
       name: brandDirector.name,
     });
-    log("Created Membership:");
-    log(createMembership);
+    log("Created Membership...");
 
     // Add row to accounts.clients
     const createDocument = await databases.createDocument({
@@ -48,16 +53,47 @@ export default async ({ req, res, log }) => {
         ...documentData,
       },
     });
-    log("Created Document:");
-    log(createDocument);
+    log("Created Document...");
 
     // Add Team Permission based on FileId
+    const grantedBrandbookPermissions = await storage.updateFile({
+      bucketId: "6953c5e200333444aafc",
+      fileId: documentData.brandbook_file_id,
+      permissions: [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    });
+    const grantedAvatarPermissions = await storage.updateFile({
+      bucketId: "6971ef4b003440c686a1",
+      fileId: documentData.avatar_file_id,
+      permissions: [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    });
+    const grantedLogoSystemBackdropPermissions = await storage.updateFile({
+      bucketId: "6971ef4b003440c686a1",
+      fileId: documentData.logo_system_backdrop_file_id,
+      permissions: [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    });
 
     return res.json({
       ok: true,
       team: createTeam,
       documents: createDocument,
       brandDirector: createMembership,
+      grantedPermissions: [
+        grantedBrandbookPermissions,
+        grantedAvatarPermissions,
+        grantedLogoSystemBackdropPermissions,
+      ],
     });
   } catch (error) {
     log("Appwrite error:", error.message);

@@ -38,8 +38,6 @@ export async function createPortalSession(customerId, returnUrl) {
 
 export async function addCompany(data) {
   try {
-    console.log(data);
-
     const documentData = {
       name: data.form.companyName,
       stripe_customer_id: data.form.stripeCustomerId,
@@ -48,8 +46,6 @@ export async function addCompany(data) {
       avatar_file_id: data.files.logoAvatar.$id,
       logo_system_backdrop_file_id: data.files.logoSystemBackdrop.$id,
     };
-
-    console.log(documentData);
 
     const execution = await functions.createExecution(
       APPWRITE.functions.addCompany,

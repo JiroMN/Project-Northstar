@@ -41,9 +41,6 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
     logUploadProgress(),
   );
 
-  // console.log(submittedData);
-  // console.log(logoAvatarUpload, brandbookUpload, logoSystemBackdropUpload);
-
   const addCompanyRes = await addCompany({
     form: submittedData.data,
     files: {
