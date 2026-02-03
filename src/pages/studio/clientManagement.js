@@ -7,7 +7,9 @@ import logUploadProgress from "../../ui/fileUploadProgress";
 import { addCompany } from "../../appwrite/functions";
 import { setButtonState } from "../../animations/global/buttons";
 import { renderToast } from "../../ui/toast";
-import { getErrorMessage } from "../../utils/helpers";
+import { formatDateTime, getErrorMessage } from "../../utils/helpers";
+import { openPreviewSheet } from "../../ui/studio/previewSheet";
+import { getAllClients } from "../../appwrite/db";
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
@@ -15,7 +17,7 @@ const showDataBtn = $("#showData");
 
 // const addCompany = await addCompany(await check);
 
-let initialData = {};
+let initialData = await getAllClients();
 let submittedData = {};
 
 submitBtn.off("click.submit").on("click.submit", async function (e) {
@@ -80,8 +82,9 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
-  console.log("Clicked ShowData...");
-  openPreview();
+  const previewData = initialData.database;
+  console.log(previewData);
+  openPreviewSheet("Clients", previewData, ["name"], "", false);
 });
 resetBtn.off("click.reset").on("click.reset", function () {
   console.log("Clicked Reset...");

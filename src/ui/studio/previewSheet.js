@@ -17,13 +17,13 @@ gsap.set(previewSheetContainer, {
 
 function renderDataInSheet(
   data,
-  labelKeys,
-  secondaryLabelKey = {
-    relation: "",
-    key: "",
-  },
+  labelKeys = [],
+  secondaryLabelKey = "",
+  canRemove,
 ) {
   const $data = $(data);
+
+  dataList.children().not(dataListItemTemplate).remove();
 
   $data.each((__, item) => {
     const clone = dataListItemTemplate.clone(true);
@@ -38,34 +38,66 @@ function renderDataInSheet(
       .filter((val) => val !== undefined && val !== null && val !== "")
       .join(" ");
 
+    let secondaryLabel = "";
+
+    // Secondary label can be:
+    // - "" (disabled)
+    // - a direct key string (e.g. "collab_start")
+    // - a relationship descriptor: { relation: "company", key: "name" }
+    if (typeof secondaryLabelKey === "string") {
+      if (secondaryLabelKey === "") {
+        secondaryLabel = `${formatDateTime(item.$updatedAt)}`;
+      } else {
+        secondaryLabel = `${item[secondaryLabelKey]}  •  ${formatDateTime(item.$updatedAt)}`;
+      }
+    } else if (secondaryLabelKey && typeof secondaryLabelKey === "object") {
+      const relation = secondaryLabelKey.relation;
+      const key = secondaryLabelKey.key;
+
+      if (relation && key && item[relation]) {
+        secondaryLabel = `${relation}: ${item[relation][key]}  •  ${formatDateTime(item.$updatedAt)}`;
+      }
+    }
+
     applyTextBindings(clone, {
       "primary-label": primaryLabel,
-      "secondary-label": `${secondaryLabelKey.relation}: ${item[secondaryLabelKey.relation][secondaryLabelKey.key]}  •  ${formatDateTime(item.$updatedAt)}`,
+      "secondary-label": secondaryLabel,
     });
 
-    clone
-      .find(".studio-preview-sheet-list-item-button")
-      .off("click.removeItem")
-      .on("click.removeItem", function () {
-        renderModal(
-          "Weet je het zeker?",
-          `Je wilt ${primaryLabel} verwijderen. Deze actie kan niet worden teruggedraaid.`,
-          "Annuleer",
-          "Verwijder",
-          async () =>
-            await removeRow(item.$databaseId, item.$collectionId, item.$id),
-        );
-      });
+    if (canRemove) {
+      clone
+        .find(".studio-preview-sheet-list-item-button.remove")
+        .off("click.removeItem")
+        .on("click.removeItem", function () {
+          renderModal(
+            "Weet je het zeker?",
+            `Je wilt ${primaryLabel} verwijderen. Deze actie kan niet worden teruggedraaid.`,
+            "Annuleer",
+            "Verwijder",
+            async () =>
+              await removeRow(item.$databaseId, item.$collectionId, item.$id),
+          );
+        });
+    } else {
+      clone.find(".studio-preview-sheet-list-item-button.remove").remove();
+    }
   });
 }
-
+/**
+ * @param {string} params.sheetTitle - Title that shows on top
+ * @param {object} params.data - Title that shows on top
+ * @param {array} params.labelKeys - Array of key name inside of data param. This decides what labels get shown
+ * @param {string|object} params.secondaryLabelKey - Optional. Either a direct key string (e.g. "collab_start"), a relationship descriptor { relation, key }, or "" to disable.
+ * @param {boolean} params.canRemove - Shows remove button based on value
+ * **/
 export function openPreviewSheet(
   sheetTitle,
   data,
   labelKeys,
   secondaryLabelKey,
+  canRemove = true,
 ) {
-  renderDataInSheet(data, labelKeys, secondaryLabelKey);
+  renderDataInSheet(data, labelKeys, secondaryLabelKey, canRemove);
 
   applyTextBindings(previewSheet, {
     "preview-sheet-title": sheetTitle,
