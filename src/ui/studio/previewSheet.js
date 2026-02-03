@@ -1,7 +1,9 @@
+import { disappearToRight } from "../../animations/helpers/micro";
 import { removeRow } from "../../appwrite/db";
 import { applyTextBindings } from "../../utils/dataBinding";
 import { formatDateTime } from "../../utils/helpers";
 import { renderModal } from "../modal";
+import { renderToast } from "../toast";
 
 const previewSheetContainer = $(".studio-preview-sheet-container");
 const previewSheet = $(".studio-preview-sheet");
@@ -76,10 +78,23 @@ function renderDataInSheet({
             "Annuleer",
             "Verwijder",
             async () => {
+              let response;
               if (alternativeRemovalFunction) {
-                await alternativeRemovalFunction(item.$id);
+                response = await alternativeRemovalFunction(item.$id);
               } else {
-                await removeRow(item.$databaseId, item.$collectionId, item.$id);
+                response = await removeRow(
+                  item.$databaseId,
+                  item.$collectionId,
+                  item.$id,
+                );
+              }
+              if (response) {
+                renderToast(
+                  "Gelukt!",
+                  `${primaryLabel} is verwijderd.`,
+                  "positive",
+                );
+                clone.remove();
               }
             },
           );
