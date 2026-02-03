@@ -23,6 +23,7 @@ export default async ({ req, res, log }) => {
     const newMembership = await teams.createMembership({
       teamId: clientIds.teamId,
       roles: userData.roles,
+      userId: newAuthUser.$id,
     });
 
     const newDatabaseUser = await databases.createDocument({

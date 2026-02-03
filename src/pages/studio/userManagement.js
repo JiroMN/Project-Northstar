@@ -45,15 +45,15 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
       teamRoles.push("Medewerker");
     }
     submittedData.data = { ...submittedData.data, roles: teamRoles };
-    console.log(submittedData);
-    // const response = await addUser(
-    //   {
-    //     teamId: selectedClientData.auth.$id,
-    //     clientId: selectedClientData.database.$id,
-    //   },
-    //   submittedData.data,
-    // );
-    // console.log(response);
+
+    const response = await addUser(
+      {
+        teamId: selectedClientData.auth.$id,
+        clientId: selectedClientData.database.$id,
+      },
+      submittedData.data,
+    );
+    console.log(response);
     setButtonState($(this), "enable", true);
   } catch (err) {
     console.error(err);
