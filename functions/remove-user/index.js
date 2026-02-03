@@ -20,11 +20,11 @@ export default async ({ req, res, log }) => {
       collectionId: "users",
       documentId: userDocId,
     });
-    log("Fetched clientData ", clientData);
+    log(`Fetched clientData: ${JSON.stringify(clientData)}`);
 
     // Remove from auth
     const removeAuthUser = await users.delete({ userId: clientData.user_id });
-    log("Removed auth user ", removeAuthUser);
+    log(`Removed auth user (204 expected): ${JSON.stringify(removeAuthUser)}`);
 
     // Remove from database
     const removeDatabaseUser = await databases.deleteDocument({
@@ -32,7 +32,9 @@ export default async ({ req, res, log }) => {
       collectionId: "users",
       documentId: userDocId,
     });
-    log("Removed db user ", removeDatabaseUser);
+    log(
+      `Removed db user (204 expected): ${JSON.stringify(removeDatabaseUser)}`,
+    );
 
     return res.json({
       ok: true,
@@ -41,7 +43,10 @@ export default async ({ req, res, log }) => {
       removeDatabaseUser,
     });
   } catch (error) {
-    log("Appwrite error:", error.message);
+    log(`Appwrite error: ${error?.message ?? String(error)}`);
+    log(
+      `Appwrite error (raw): ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`,
+    );
 
     return res.json({
       ok: false,

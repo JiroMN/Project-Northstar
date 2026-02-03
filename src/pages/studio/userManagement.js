@@ -67,7 +67,7 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
   }
 });
 
-showDataBtn.off("click.showData").on("click.showData", async function () {
+showDataBtn.off("click.showData").on("click.showData", function () {
   console.log("Clicked ShowData...");
   openPreviewSheet({
     sheetTitle: "Gebruikers",
@@ -78,7 +78,7 @@ showDataBtn.off("click.showData").on("click.showData", async function () {
       key: "name",
     },
     canRemove: true,
-    alternativeRemovalFunction: await removeUser(),
+    alternativeRemovalFunction: removeUser,
   });
 });
 

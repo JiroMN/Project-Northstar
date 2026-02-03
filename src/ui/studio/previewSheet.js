@@ -15,13 +15,13 @@ gsap.set(previewSheetContainer, {
   pointerEvents: "none",
 });
 
-function renderDataInSheet(
+function renderDataInSheet({
   data,
   labelKeys = [],
   secondaryLabelKey = "",
   canRemove,
   alternativeRemovalFunction,
-) {
+}) {
   const $data = $(data);
 
   dataList.children().not(dataListItemTemplate).remove();
