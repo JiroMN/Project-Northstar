@@ -29,19 +29,19 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
     APPWRITE.buckets.clientFiles.id,
     submittedData.files.logoAvatar,
     [],
-    logUploadProgress(),
+    logUploadProgress(submittedData.files.logoAvatar.name),
   );
   const brandbookUpload = await uploadFile(
     APPWRITE.buckets.brandbooks.id,
     submittedData.files.brandBook,
     [],
-    logUploadProgress(),
+    logUploadProgress(submittedData.files.brandBook.name),
   );
   const logoSystemBackdropUpload = await uploadFile(
     APPWRITE.buckets.clientFiles.id,
     submittedData.files.logoSystemBackdrop,
     [],
-    logUploadProgress(),
+    logUploadProgress(submittedData.files.logoSystemBackdrop.name),
   );
 
   const addCompanyRes = await addCompany({
