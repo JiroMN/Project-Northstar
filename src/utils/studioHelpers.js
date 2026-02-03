@@ -30,3 +30,11 @@ export function gatherFormData(form) {
 
   return { data, files };
 }
+/**
+@param {Object} params
+ * @param {number} params.formData - formData object from gatherFormData()
+ * @returns {Boolean}
+**/
+export function validateFormData(formData) {
+  return true;
+}

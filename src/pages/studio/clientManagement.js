@@ -5,6 +5,7 @@ import { checkAuth } from "../../appwrite/auth";
 import { uploadFile } from "../../appwrite/storage";
 import logUploadProgress from "../../ui/fileUploadProgress";
 import { addCompany } from "../../appwrite/functions";
+import { setButtonState } from "../../animations/global/buttons";
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
@@ -17,6 +18,8 @@ let submittedData = {};
 
 submitBtn.off("click.submit").on("click.submit", async function (e) {
   e.preventDefault();
+  setButtonState($(this), "isLoading", false);
+
   const relatedForm = $(this).attr("data-related-form");
   const form = $(`#${relatedForm}`);
 
@@ -52,10 +55,12 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
   });
 
   console.log(addCompanyRes);
+  setButtonState($(this), "enable", true);
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
   console.log("Clicked ShowData...");
+  openPreview();
 });
 resetBtn.off("click.reset").on("click.reset", function () {
   console.log("Clicked Reset...");
