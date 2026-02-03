@@ -1,5 +1,8 @@
 {
   "name": "add-user",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "node-appwrite": "^22.0.0"
+  }
 }

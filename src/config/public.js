@@ -34,6 +34,7 @@ export const APPWRITE = {
     createPortalSession: "69738875002716066928",
     getStripeProducts: "6974b9800007630ad391",
     addCompany: "6980a1d00007b504bd1b",
+    addUser: "6981ec6b001556993df5",
   },
 
   databases: {

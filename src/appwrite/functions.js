@@ -39,7 +39,7 @@ export async function createPortalSession(customerId, returnUrl) {
 export async function addUser(clientIds, data) {
   try {
     const execution = await functions.createExecution(
-      APPWRITE.functions.addCompany,
+      APPWRITE.functions.addUser,
       JSON.stringify({
         clientIds: { teamId: clientIds.teamId, clientId: clientIds.clientId },
         userData: data,
