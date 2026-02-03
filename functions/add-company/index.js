@@ -5,6 +5,7 @@ import {
   Storage,
   Teams,
   Permission,
+  Role,
 } from "node-appwrite";
 
 const sdkClient = new Client()
@@ -66,18 +67,18 @@ export default async ({ req, res, log }) => {
       bucketId: "6953c5e200333444aafc",
       fileId: documentData.brandbook_file_id,
       permissions: [
-        Permission.read([createTeam.$id]),
-        Permission.update([createTeam.$id]),
-        Permission.delete([createTeam.$id]),
+        Permission.read(Role.team([createTeam.$id])),
+        Permission.update(Role.team([createTeam.$id])),
+        Permission.delete(Role.team([createTeam.$id])),
       ],
     });
     const grantedAvatarPermissions = await storage.updateFile({
       bucketId: "6971ef4b003440c686a1",
       fileId: documentData.avatar_file_id,
       permissions: [
-        Permission.read([createTeam.$id]),
-        Permission.update([createTeam.$id]),
-        Permission.delete([createTeam.$id]),
+        Permission.read(Role.team([createTeam.$id])),
+        Permission.update(Role.team([createTeam.$id])),
+        Permission.delete(Role.team([createTeam.$id])),
       ],
     });
     const grantedLogoSystemBackdropPermissions = await storage.updateFile({
