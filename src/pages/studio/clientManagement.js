@@ -73,10 +73,11 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
         message: addCompanyRes.message,
       };
     }
-    setButtonState($(this), "enable", true);
   } catch (err) {
     renderToast("Oeps!", getErrorMessage(err), "negative");
     console.error(err);
+  } finally {
+    setButtonState($(this), "enable", true);
   }
 });
 

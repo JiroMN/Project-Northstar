@@ -59,11 +59,13 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
         `Gebruiker is toegevoegd aan ${selectedClientData.database.name}`,
         "positive",
       );
+      initialData.documents.push(response.newDatabaseUser);
     }
-    setButtonState($(this), "enable", true);
   } catch (err) {
     console.error(err);
     renderToast("Oeps!", getErrorMessage(err), "negative");
+  } finally {
+    setButtonState($(this), "enable", true);
   }
 });
 

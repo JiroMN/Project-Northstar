@@ -30,11 +30,42 @@ export function gatherFormData(form) {
 
   return { data, files };
 }
-/**
-@param {Object} params
- * @param {number} params.formData - formData object from gatherFormData()
- * @returns {Boolean}
-**/
-export function validateFormData(formData) {
-  return true;
+
+export function setFormData($form, data) {
+  Object.entries(data).forEach(([name, value]) => {
+    const $field = $form.find(`[name='${name}']`);
+
+    if (!$field.length) return;
+
+    const type = $field.attr("type");
+
+    if (type === "checkbox") {
+      $field.prop("checked", Boolean(value));
+      return;
+    }
+
+    if (type === "radio") {
+      $field.filter(`[value="${value}"]`).prop("checked", true);
+      return;
+    }
+
+    if ($field.is("select")) {
+      $field.val(value).trigger("change");
+      return;
+    }
+
+    $field.val(value);
+  });
+}
+
+export function onClientSelect(fn) {
+  const id = $("body").attr("data-selected-client-id");
+  if (id) fn(id);
+
+  $(document)
+    .off("client:selected.onClientSelect")
+    .on("client:selected.onClientSelect", (__, clientId) => {
+      if (!clientId) return;
+      fn(clientId);
+    });
 }

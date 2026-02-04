@@ -1,3 +1,4 @@
+import { setButtonState } from "../../animations/global/buttons";
 import { disappearToRight } from "../../animations/helpers/micro";
 import { removeRow } from "../../appwrite/db";
 import { applyTextBindings } from "../../utils/dataBinding";
@@ -78,6 +79,8 @@ function renderDataInSheet({
             "Annuleer",
             "Verwijder",
             async () => {
+              if (previewSheet.attr("data-disabled") === "true") return;
+              setButtonState(previewSheet, "loading", false);
               let response;
               if (alternativeRemovalFunction) {
                 response = await alternativeRemovalFunction(item.$id);
@@ -95,6 +98,7 @@ function renderDataInSheet({
                   "positive",
                 );
                 clone.remove();
+                setButtonState($(previewSheet), "enable", true);
               }
             },
           );

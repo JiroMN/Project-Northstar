@@ -52,6 +52,7 @@ clientSelector.each(async (__, selector) => {
       client[0].avatar_file_id,
     );
     $("body").attr("data-selected-client-id", client[0].$id);
+    $(document).trigger("client:selected", [clientId]);
 
     applyTextBindings($clientSelector, {
       "selected-client-name": client[0].name,

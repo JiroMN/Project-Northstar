@@ -1,4 +1,4 @@
-import { Databases, Query } from "appwrite";
+import { Databases, ID, Query } from "appwrite";
 import { client } from "./client";
 import { getSubscriptionFromStripe } from "./functions";
 import { getMyTeams } from "./auth";
@@ -19,9 +19,40 @@ export async function getCollection(databaseId, collectionId, queries) {
   }
 }
 
-export async function createDocument(databaseId, collectionId, queries) {
+export async function createDocument({
+  databaseId,
+  collectionId,
+  data,
+  permissions,
+}) {
   try {
-    return await databases.createDocument(databaseId, collectionId, queries);
+    return await databases.createDocument({
+      databaseId: databaseId,
+      collectionId: collectionId,
+      documentId: ID.unique(),
+      data: data,
+      permissions: permissions,
+    });
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export async function updateDocument({
+  databaseId,
+  collectionId,
+  documentId,
+  data,
+  permissions,
+}) {
+  try {
+    return await databases.updateDocument({
+      databaseId: databaseId,
+      collectionId: collectionId,
+      documentId: documentId,
+      data: data,
+    });
   } catch (err) {
     console.error(err);
     throw err;
