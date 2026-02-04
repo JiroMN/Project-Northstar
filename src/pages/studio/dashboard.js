@@ -12,6 +12,7 @@ import {
   setFormData,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
+import { renderModal } from "../../ui/modal";
 import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
 
@@ -60,65 +61,68 @@ function setInitialData(data) {
   setFormData($("#resourcesForm"), pairs);
 }
 
-submitBtn.off("click.submit").on("click.submit", async function (e) {
+submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
   try {
-    if (!selectedClientId || selectedClientId == "") {
-      renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
-      return;
-    }
+    renderModal(
+      "Weet je het zeker?",
+      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+      "Annuleer",
+      "Ga Door",
+      async () => {
+        if (!selectedClientId || selectedClientId == "") {
+          renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+          return;
+        }
 
-    if ($(this).attr("data-disable") === "true") return;
-    setButtonState($(this), "loading", false);
+        if ($(this).attr("data-disable") === "true") return;
+        setButtonState($(this), "loading", false);
 
-    const relatedForm = $(this).attr("data-related-form");
-    const form = $(`#${relatedForm}`);
+        const relatedForm = $(this).attr("data-related-form");
+        const form = $(`#${relatedForm}`);
 
-    submittedData = gatherFormData(form);
+        submittedData = gatherFormData(form);
 
-    let response;
-    const doc = initialData.documents[0];
-
-    if (initialData.total < 1) {
-      // Run addDocument
-      const clientData = await getClientById(selectedClientId);
-      const teamId = clientData.auth.$id;
-      response = await createDocument({
-        databaseId: APPWRITE.databases.general.id,
-        collectionId: APPWRITE.databases.general.collections.resources.id,
-        data: {
+        let response;
+        const doc = initialData.documents[0];
+        const dataObject = {
           client_id: selectedClientId,
-          website_url: submittedData.data.website,
-          webflow_designer_url: submittedData.data.webflowDesigner,
-          webflow_analytics_url: submittedData.data.webflowAnalytics,
-          googledrive_url: submittedData.data.googleDrive,
-          figma_url: submittedData.data.figma,
-        },
-        permissions: [
-          Permission.read(Role.team(teamId)),
-          Permission.update(Role.team(teamId)),
-          Permission.delete(Role.team(teamId)),
-        ],
-      });
-    } else {
-      // Run updateDocument
-      response = await updateDocument({
-        databaseId: APPWRITE.databases.general.id,
-        collectionId: APPWRITE.databases.general.collections.resources.id,
-        documentId: doc.$id,
-        data: {
-          website_url: submittedData.data.website,
-          webflow_designer_url: submittedData.data.webflowDesigner,
-          webflow_analytics_url: submittedData.data.webflowAnalytics,
-          googledrive_url: submittedData.data.googleDrive,
-          figma_url: submittedData.data.figma,
-        },
-      });
-    }
+          website_url: submittedData?.data?.website,
+          webflow_designer_url: submittedData?.data?.webflowDesigner,
+          webflow_analytics_url: submittedData?.data?.webflowAnalytics,
+          googledrive_url: submittedData?.data?.googleDrive,
+          figma_url: submittedData?.data?.figma,
+        };
 
-    if (response) {
-      renderToast("Gelukt!", `Resources zijn aangepast van.`, "positive");
-    }
+        if (initialData.total < 1) {
+          // Run addDocument
+          const clientData = await getClientById(selectedClientId);
+          const teamId = clientData.auth.$id;
+          response = await createDocument({
+            databaseId: APPWRITE.databases.general.id,
+            collectionId: APPWRITE.databases.general.collections.resources.id,
+            data: dataObject,
+            permissions: [
+              Permission.read(Role.team(teamId)),
+              Permission.update(Role.team(teamId)),
+              Permission.delete(Role.team(teamId)),
+            ],
+          });
+        } else {
+          // Run updateDocument
+          response = await updateDocument({
+            databaseId: APPWRITE.databases.general.id,
+            collectionId: APPWRITE.databases.general.collections.resources.id,
+            documentId: doc.$id,
+            data: dataObject,
+          });
+        }
+
+        if (response) {
+          renderToast("Gelukt!", `Resources zijn aangepast van.`, "positive");
+        }
+      },
+    );
   } catch (err) {
     console.error(err);
     renderToast("Oeps!", getErrorMessage(err), "negative");

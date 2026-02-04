@@ -2,6 +2,9 @@ import { SELECTS } from "../../config/optionRegistry";
 import { applyTextBindings } from "../../utils/dataBinding";
 import { getCssValueFromVarName } from "../../utils/helpers";
 
+// Remove webflow's default maxlength
+$("[maxlength]").removeAttr("maxlength");
+
 // File Uploaders
 const uploadContainer = $(".file-upload-ui");
 

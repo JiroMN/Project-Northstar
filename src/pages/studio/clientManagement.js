@@ -6,6 +6,7 @@ import logUploadProgress from "../../ui/fileUploadProgress";
 import { addCompany } from "../../appwrite/functions";
 import { setButtonState } from "../../animations/global/buttons";
 import { renderToast } from "../../ui/toast";
+import { renderModal } from "../../ui/modal";
 import { getErrorMessage } from "../../utils/helpers";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { getAllClients } from "../../appwrite/db";
@@ -19,60 +20,66 @@ const showDataBtn = $("#showData");
 let initialData = await getAllClients();
 let submittedData = {};
 
-submitBtn.off("click.submit").on("click.submit", async function (e) {
+submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
   try {
-    // Handle button states
-    if ($(this).attr("data-disable") === "true") return;
-    setButtonState($(this), "loading", false);
+    renderModal(
+      "Weet je het zeker?",
+      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+      "Annuleer",
+      "Ga Door",
+      async () => {
+        // Handle button states
+        if ($(this).attr("data-disable") === "true") return;
+        setButtonState($(this), "loading", false);
 
-    const relatedForm = $(this).attr("data-related-form");
-    const form = $(`#${relatedForm}`);
+        const relatedForm = $(this).attr("data-related-form");
+        const form = $(`#${relatedForm}`);
 
-    submittedData = gatherFormData(form);
+        submittedData = gatherFormData(form);
 
-    const logoAvatarUpload = await uploadFile(
-      APPWRITE.buckets.clientFiles.id,
-      submittedData.files.logoAvatar,
-      [],
-      logUploadProgress(submittedData.files.logoAvatar[0].name),
-    );
-    const brandbookUpload = await uploadFile(
-      APPWRITE.buckets.brandbooks.id,
-      submittedData.files.brandBook,
-      [],
-      logUploadProgress(submittedData.files.brandBook[0].name),
-    );
-    const logoSystemBackdropUpload = await uploadFile(
-      APPWRITE.buckets.clientFiles.id,
-      submittedData.files.logoSystemBackdrop,
-      [],
-      logUploadProgress(submittedData.files.logoSystemBackdrop[0].name),
-    );
+        const logoAvatarUpload = await uploadFile(
+          APPWRITE.buckets.clientFiles.id,
+          submittedData.files.logoAvatar,
+          [],
+          logUploadProgress(submittedData.files.logoAvatar[0].name),
+        );
+        const brandbookUpload = await uploadFile(
+          APPWRITE.buckets.brandbooks.id,
+          submittedData.files.brandBook,
+          [],
+          logUploadProgress(submittedData.files.brandBook[0].name),
+        );
+        const logoSystemBackdropUpload = await uploadFile(
+          APPWRITE.buckets.clientFiles.id,
+          submittedData.files.logoSystemBackdrop,
+          [],
+          logUploadProgress(submittedData.files.logoSystemBackdrop[0].name),
+        );
 
-    const addCompanyRes = await addCompany({
-      form: submittedData.data,
-      files: {
-        logoAvatar: logoAvatarUpload,
-        brandbook: brandbookUpload,
-        logoSystemBackdrop: logoSystemBackdropUpload,
+        const addCompanyRes = await addCompany({
+          form: submittedData.data,
+          files: {
+            logoAvatar: logoAvatarUpload,
+            brandbook: brandbookUpload,
+            logoSystemBackdrop: logoSystemBackdropUpload,
+          },
+          brandDirector: await checkAuth(),
+        });
+
+        if (addCompanyRes.ok) {
+          renderToast(
+            "Success!",
+            "Bedrijf is toegevoegd aan TheBrand.Book",
+            "positive",
+          );
+        } else {
+          throw {
+            message: addCompanyRes.message,
+          };
+        }
       },
-      brandDirector: await checkAuth(),
-    });
-
-    console.log(addCompanyRes);
-
-    if (addCompanyRes.ok) {
-      renderToast(
-        "Success!",
-        "Bedrijf is toegevoegd aan TheBrand.Book",
-        "positive",
-      );
-    } else {
-      throw {
-        message: addCompanyRes.message,
-      };
-    }
+    );
   } catch (err) {
     renderToast("Oeps!", getErrorMessage(err), "negative");
     console.error(err);
