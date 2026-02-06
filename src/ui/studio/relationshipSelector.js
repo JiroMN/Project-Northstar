@@ -1,12 +1,14 @@
+import { Query } from "appwrite";
 import { getCollection } from "../../appwrite/db";
 import { RELATIONSHIPSELECTORS } from "../../config/optionRegistry";
 import { applyTextBindings } from "../../utils/dataBinding";
 import { getCssValueFromVarName } from "../../utils/helpers";
+import { onClientSelect } from "../../utils/studioHelpers";
 
 // Relationship Selectors
 const relationshipSelector = $(".relationship-input");
 const relationshipSelectorList = $(".relationship-input-list");
-const listItemTemplate = $("#relationshipListItemTemplate");
+const listItemTemplate = $("#relationshipListItemTemplate").detach();
 
 gsap.set(relationshipSelectorList, { display: "flex", autoAlpha: 0 });
 
@@ -24,12 +26,61 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   // Relationregistry
   const relKey = $relationshipSelector.attr("data-rel-key");
   const relRegistryItem = RELATIONSHIPSELECTORS[relKey];
+  // ClientData
+  let selectedClientId = "";
   // Data
   let selectedItems = [];
-  const response = await getCollection(
-    relRegistryItem.databaseId,
-    relRegistryItem.collectionId,
-  );
+  let relationResponse;
+
+  onClientSelect(async (clientId) => {
+    try {
+      console.log("Gathering data");
+      selectedClientId = clientId;
+      relationResponse = await getCollection(
+        relRegistryItem.databaseId,
+        relRegistryItem.collectionId,
+        [Query.equal("client_id", clientId)],
+      );
+
+      renderOptions(relationResponse);
+    } catch (err) {
+      console.error("[relationshipSelector.js]", err);
+    }
+  });
+
+  function renderOptions(res) {
+    console.log("rendering options");
+    $list.html("");
+
+    let message =
+      selectedClientId == ""
+        ? "Selecteer eerst een bedrijf"
+        : `Geen data gevonden voor ${relRegistryItem.placeholder}`;
+
+    if (!res || !res.documents || res.documents.length === 0) {
+      $list.html(
+        `<div class='sm fg-50 text-align-center line-height-large'>${message}</div>`,
+      );
+      $listItems = $container.find(".relationship-input-list-item");
+      return;
+    }
+
+    $(res.documents).each((__, doc) => {
+      const listItemClone = listItemTemplate.clone(true);
+
+      listItemClone
+        .attr("id", "")
+        .css("display", "flex")
+        .attr("data-document-id", doc.$id);
+      listItemClone.appendTo($list);
+      applyTextBindings(listItemClone, {
+        label: doc[relRegistryItem.labelKey],
+        id: doc.$id,
+      });
+    });
+
+    $listItems = $container.find(".relationship-input-list-item");
+  }
 
   // Relationship Logic
   function handleSelect(id) {
@@ -60,23 +111,9 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   applyTextBindings($relationshipSelector, {
     placeholder: relRegistryItem.placeholder,
   });
-  $input.attr("name", relKey); // Set input name to relationRegistry key
+  $input.attr("name", relKey).attr("name", relKey); // Set input name to relationRegistry key
 
-  $(response.documents).each((__, doc) => {
-    const listItemClone = listItemTemplate.clone(true);
-
-    listItemClone
-      .attr("id", "")
-      .css("display", "flex")
-      .attr("data-document-id", doc.$id);
-    listItemClone.appendTo($list);
-    applyTextBindings(listItemClone, {
-      label: doc[relRegistryItem.labelKey],
-      id: doc.$id,
-    });
-  });
-
-  $listItems = $container.find(".relationship-input-list-item");
+  renderOptions(relationResponse);
 
   // Event Handlers
   $relationshipSelector

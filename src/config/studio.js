@@ -70,6 +70,45 @@ export const WRITE_CONFIG = {
       }),
     },
   },
+  logoSystem: {
+    logoSetForm: {
+      collectionId: APPWRITE.databases.logoSystem.collections.sets.id,
+      initialDataKey: "logoSetResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        title: data.logoSetTitle,
+        notes: data.logoSetDescription,
+        sort_order: parseInt(data.logoSetSortingOrder),
+      }),
+    },
+    logoVariantForm: {
+      collectionId: APPWRITE.databases.logoSystem.collections.variants.id,
+      initialDataKey: "logoVariantResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        logoSet: data.logoSets,
+        variant_name: data.logoVariant,
+        preview_bg_hex: data.logoSetPreviewBg,
+        png_file_id:
+          uploadedFileIds.logoVariantPngVariant ??
+          existingAttachmentIds.logoVariantPngVariant,
+        svg_file_id:
+          uploadedFileIds.logoVariantSvgVariant ??
+          existingAttachmentIds.logoVariantSvgVariant,
+        sort_order: parseInt(data.logoVariantSortingOrder),
+      }),
+    },
+  },
 };
 
 export const UPLOAD_PLAN = {
@@ -85,6 +124,25 @@ export const UPLOAD_PLAN = {
     },
     obituaryAttachment: {
       bucketId: APPWRITE.buckets.obituary.id,
+      permissions: (teamId) => [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    },
+  },
+  logoSystem: {
+    // Name of input field
+    logoVariantPngVariant: {
+      bucketId: APPWRITE.buckets.logos.id,
+      permissions: (teamId) => [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    },
+    logoVariantSvgVariant: {
+      bucketId: APPWRITE.buckets.logos.id,
       permissions: (teamId) => [
         Permission.read(Role.team(teamId)),
         Permission.update(Role.team(teamId)),

@@ -24,6 +24,7 @@ function renderDataInSheet({
   secondaryLabelKey = "",
   canRemove,
   alternativeRemovalFunction,
+  canEdit,
 }) {
   const $data = $(data);
 
@@ -106,6 +107,18 @@ function renderDataInSheet({
     } else {
       clone.find(".studio-preview-sheet-list-item-button.remove").remove();
     }
+    if (canEdit) {
+      clone
+        .find(".studio-preview-sheet-list-item-button.edit")
+        .off("click.editItem")
+        .on("click.editItem", async function () {
+          console.log("Clicked edit on: ", item);
+          $(document).trigger("preview:itemEdit", item);
+          closePreviewSheet();
+        });
+    } else {
+      clone.find(".studio-preview-sheet-list-item-button.edit").remove();
+    }
   });
 }
 /**
@@ -122,6 +135,7 @@ export function openPreviewSheet({
   secondaryLabelKey,
   canRemove = true,
   alternativeRemovalFunction,
+  canEdit,
 }) {
   renderDataInSheet({
     data,
@@ -129,6 +143,7 @@ export function openPreviewSheet({
     secondaryLabelKey,
     canRemove,
     alternativeRemovalFunction,
+    canEdit,
   });
 
   applyTextBindings(previewSheet, {

@@ -66,17 +66,73 @@ export function setFormData($form, data) {
   });
 }
 
-// Runs `fn(clientId)` whenever a client is selected or when a page loads with a client already selected
+const clientSelectSubscribers = new Set();
+let clientSelectListenerAttached = false;
+
+function attachClientSelectListener() {
+  if (clientSelectListenerAttached) return;
+  clientSelectListenerAttached = true;
+
+  $(document).on("client:selected.onClientSelect", (__, clientId) => {
+    // console.log("[onClientSelect] event fired:", clientId);
+    if (!clientId) return;
+
+    clientSelectSubscribers.forEach((cb) => {
+      try {
+        cb(clientId);
+      } catch (err) {
+        console.error("[onClientSelect] subscriber error", err);
+      }
+    });
+  });
+}
+
 export function onClientSelect(fn) {
+  if (typeof fn !== "function") return () => {};
+
+  attachClientSelectListener();
+  clientSelectSubscribers.add(fn);
+
   const id = $("body").attr("data-selected-client-id");
   if (id) fn(id);
 
-  $(document)
-    .off("client:selected.onClientSelect")
-    .on("client:selected.onClientSelect", (__, clientId) => {
-      if (!clientId) return;
-      fn(clientId);
+  // Optional cleanup: caller can unsubscribe if needed
+  return () => clientSelectSubscribers.delete(fn);
+}
+
+const previewItemEditSubscribers = new Set();
+let previewItemEditListenerAttached = false;
+let lastPreviewItemEditPayload = null;
+
+function attachPreviewItemEditListener() {
+  if (previewItemEditListenerAttached) return;
+  previewItemEditListenerAttached = true;
+
+  $(document).on("preview:itemEdit.onPreviewItemEdit", (__, payload) => {
+    // console.log("[onPreviewItemEdit] event fired:", payload);
+    if (!payload) return;
+
+    lastPreviewItemEditPayload = payload;
+
+    previewItemEditSubscribers.forEach((cb) => {
+      try {
+        cb(payload);
+      } catch (err) {
+        console.error("[onPreviewItemEdit] subscriber error", err);
+      }
     });
+  });
+}
+
+export function onPreviewItemEdit(fn) {
+  if (typeof fn !== "function") return () => {};
+
+  attachPreviewItemEditListener();
+  previewItemEditSubscribers.add(fn);
+
+  if (lastPreviewItemEditPayload) fn(lastPreviewItemEditPayload);
+
+  return () => previewItemEditSubscribers.delete(fn);
 }
 
 // Determines which file inputs actually contain a selected file and
