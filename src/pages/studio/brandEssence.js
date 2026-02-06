@@ -15,6 +15,7 @@ import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
 import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
+import { WRITE_CONFIG } from "../../config/studio";
 
 // Webflow duplicates IDs across repeated cards; selecting by attribute ensures we target all matching buttons.
 const submitBtn = $("[id='submitForm']");
@@ -22,43 +23,7 @@ const resetBtn = $("[id='resetForm']");
 const showDataBtn = $("[id='showData']");
 
 // Configuration mapping form IDs to database collections and data mapping functions
-const WRITE_CONFIG = {
-  corePurposeForm: {
-    collectionId: APPWRITE.databases.brandEssence.collections.corePurpose.id,
-    initialDataKey: "corePurposeResponse",
-    mapToDb: (data) => ({
-      client_id: selectedClientId,
-      purpose: data.corePurpose,
-      purpose_secondary_lang: data.secondaryCorePurpose,
-      explanation: data.corePurposeDescription,
-    }),
-  },
-  onlinessForm: {
-    collectionId: APPWRITE.databases.brandEssence.collections.onliness.id,
-    initialDataKey: "onlinessResponse",
-    mapToDb: (data) => ({
-      client_id: selectedClientId,
-      short_statement: data.shortOnliness,
-      full_statement: data.fullOnliness,
-      what: data.whatOnliness,
-      how: data.howOnliness,
-      who: data.whoOnliness,
-      where: data.whereOnliness,
-      why: data.whyOnliness,
-      when: data.whenOnliness,
-    }),
-  },
-  truelineForm: {
-    collectionId: APPWRITE.databases.brandEssence.collections.trueline.id,
-    initialDataKey: "truelineResponse",
-    mapToDb: (data) => ({
-      client_id: selectedClientId,
-      trueline: data.trueline,
-      trueline_secondary_lang: data.secondaryTrueline,
-      explanation: data.truelineDescription,
-    }),
-  },
-};
+const writeCfg = WRITE_CONFIG.brandStory;
 
 // Page-level state: initialData is used for prefill/reset, submittedData for the last submit,
 // and selectedClientId is the active client context for all forms on this page.
@@ -123,7 +88,7 @@ function setInitialData(data, formId) {
   };
 
   if (data) {
-    // Translate DB column names back into form field names (inverse of WRITE_CONFIG.mapToDb).
+    // Translate DB column names back into form field names (inverse of writeCfg.mapToDb).
     switch (formId) {
       case "corePurposeForm":
         pairs.corePurposeForm = {
@@ -191,17 +156,20 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         let response;
         // Check if there are any documents already in collection
-        if (initialData[WRITE_CONFIG[relatedForm].initialDataKey].total >= 1) {
+        if (initialData[writeCfg[relatedForm].initialDataKey].total >= 1) {
           console.log("Updating Document");
           // Check initialData to see if a document already exists for this form (update vs create).
           const doc =
-            initialData[WRITE_CONFIG[relatedForm].initialDataKey].documents[0];
+            initialData[writeCfg[relatedForm].initialDataKey].documents[0];
           // Update the existing document with the newly submitted form values.
           response = await updateDocument({
             databaseId: APPWRITE.databases.brandEssence.id,
-            collectionId: WRITE_CONFIG[relatedForm].collectionId,
+            collectionId: writeCfg[relatedForm].collectionId,
             documentId: doc.$id,
-            data: WRITE_CONFIG[relatedForm].mapToDb(submittedData.data),
+            data: writeCfg[relatedForm].mapToDb(
+              submittedData.data,
+              selectedClientId,
+            ),
           });
         } else {
           console.log("Adding document");
@@ -211,8 +179,11 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
           response = await createDocument({
             databaseId: APPWRITE.databases.brandEssence.id,
-            collectionId: WRITE_CONFIG[relatedForm].collectionId,
-            data: WRITE_CONFIG[relatedForm].mapToDb(submittedData.data),
+            collectionId: writeCfg[relatedForm].collectionId,
+            data: writeCfg[relatedForm].mapToDb(
+              submittedData.data,
+              selectedClientId,
+            ),
             permissions: [
               Permission.read(Role.team(teamId)),
               Permission.update(Role.team(teamId)),
@@ -245,7 +216,7 @@ resetBtn.each((__, btn) => {
     const relatedForm = $(this).attr("data-related-form");
 
     setInitialData(
-      initialData[WRITE_CONFIG[relatedForm].initialDataKey],
+      initialData[writeCfg[relatedForm].initialDataKey],
       relatedForm,
     );
   });

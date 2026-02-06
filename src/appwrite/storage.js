@@ -61,3 +61,12 @@ export async function uploadFile(
     throw err;
   }
 }
+
+export async function removeFile(buckedId, fileId) {
+  try {
+    return storage.deleteFile(buckedId, fileId);
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}

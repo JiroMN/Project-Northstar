@@ -1,10 +1,16 @@
+import { uploadFile } from "../appwrite/storage";
+import logUploadProgress from "../ui/fileUploadProgress";
+
+// Reads a Webflow form and splits the result into:
+// - `data`: all non-file inputs (text, select, checkbox, radio)
+// - `files`: file inputs grouped by their input `name`
 export function gatherFormData(form) {
   const formData = new FormData(form[0]);
   const data = {};
   const files = {};
 
   for (const [key, value] of formData.entries()) {
-    // File input
+    // If this entry is a File, store it separately under its input name
     if (value instanceof File) {
       if (!files[key]) files[key] = [];
       files[key].push(value);
@@ -31,6 +37,8 @@ export function gatherFormData(form) {
   return { data, files };
 }
 
+// Writes values back into a form by matching object keys to input `name` attributes
+// Handles different input types (checkbox, radio, select, text)
 export function setFormData($form, data) {
   Object.entries(data).forEach(([name, value]) => {
     const $field = $form.find(`[name='${name}']`);
@@ -58,6 +66,7 @@ export function setFormData($form, data) {
   });
 }
 
+// Runs `fn(clientId)` whenever a client is selected or when a page loads with a client already selected
 export function onClientSelect(fn) {
   const id = $("body").attr("data-selected-client-id");
   if (id) fn(id);
@@ -68,4 +77,53 @@ export function onClientSelect(fn) {
       if (!clientId) return;
       fn(clientId);
     });
+}
+
+// Determines which file inputs actually contain a selected file and
+// resolves where each file should be uploaded based on the upload plan
+export function getUploadTargetsFromForm(submittedFiles, plan) {
+  const targets = [];
+
+  // Loop over every file field defined in the upload plan (not over the form itself)
+  for (const [fieldName, cfg] of Object.entries(plan)) {
+    // Grab the first file for this input (single-file uploads are treated as arrays)
+    const files = submittedFiles?.[fieldName] ?? [];
+    const file = Array.isArray(files) ? files[0] : files;
+
+    // Skip this field if no real file was selected
+    if (!(file instanceof File) || file.size <= 0) continue;
+
+    // Store everything needed later to upload or replace this file
+    targets.push({
+      fieldName,
+      file,
+      bucketId: cfg.bucketId,
+      permissions: cfg.permissions,
+    });
+  }
+
+  return targets;
+}
+
+// Uploads all selected files from a form according to the upload plan
+// Returns an object mapping input names to newly created Appwrite file IDs
+export async function uploadFilesFromForm(submittedFiles, teamId, plan) {
+  const uploaded = {};
+  const targets = getUploadTargetsFromForm(submittedFiles, plan);
+
+  // Upload each resolved file target one by one
+  for (const target of targets) {
+    const permissions = target.permissions ? target.permissions(teamId) : [];
+
+    const res = await uploadFile(
+      target.bucketId,
+      target.file,
+      permissions,
+      logUploadProgress(target.file.name),
+    );
+
+    uploaded[target.fieldName] = res.$id;
+  }
+
+  return uploaded;
 }

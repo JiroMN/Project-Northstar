@@ -1,0 +1,95 @@
+import { Permission, Role } from "appwrite";
+import APPWRITE from "./public";
+
+export const WRITE_CONFIG = {
+  brandEssence: {
+    corePurposeForm: {
+      collectionId: APPWRITE.databases.brandEssence.collections.corePurpose.id,
+      initialDataKey: "corePurposeResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        purpose: data.corePurpose,
+        purpose_secondary_lang: data.secondaryCorePurpose,
+        explanation: data.corePurposeDescription,
+      }),
+    },
+    onlinessForm: {
+      collectionId: APPWRITE.databases.brandEssence.collections.onliness.id,
+      initialDataKey: "onlinessResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        short_statement: data.shortOnliness,
+        full_statement: data.fullOnliness,
+        what: data.whatOnliness,
+        how: data.howOnliness,
+        who: data.whoOnliness,
+        where: data.whereOnliness,
+        why: data.whyOnliness,
+        when: data.whenOnliness,
+      }),
+    },
+    truelineForm: {
+      collectionId: APPWRITE.databases.brandEssence.collections.trueline.id,
+      initialDataKey: "truelineResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        trueline: data.trueline,
+        trueline_secondary_lang: data.secondaryTrueline,
+        explanation: data.truelineDescription,
+      }),
+    },
+  },
+  brandStory: {
+    visionForm: {
+      collectionId: APPWRITE.databases.brandStory.collections.vision.id,
+      initialDataKey: "visionResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentId,
+      ) => ({
+        client_id: selectedClientId,
+        attachment_id: uploadedFileIds.visionAttachment ?? existingAttachmentId,
+        description: data.visionDescription,
+      }),
+    },
+    obituaryForm: {
+      collectionId: APPWRITE.databases.brandStory.collections.obituary.id,
+      initialDataKey: "obituaryResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentId,
+      ) => ({
+        client_id: selectedClientId,
+        attachment_id:
+          uploadedFileIds.obituaryAttachment ?? existingAttachmentId,
+        obituary: data.obituary,
+      }),
+    },
+  },
+};
+
+export const UPLOAD_PLAN = {
+  brandStory: {
+    // Name of input field
+    visionAttachment: {
+      bucketId: APPWRITE.buckets.vision.id,
+      permissions: (teamId) => [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    },
+    obituaryAttachment: {
+      bucketId: APPWRITE.buckets.obituary.id,
+      permissions: (teamId) => [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    },
+  },
+};
