@@ -266,10 +266,13 @@ showDataBtn.off("click.showData").on("click.showData", function () {
   console.log(writeCfg[relatedForm], relatedForm);
   const labelKeys =
     relatedForm === "logoVariantForm" ? ["variant_name"] : ["title"];
-  const secondaryLabelKeys = relatedForm === "logoVariantForm" && {
-    relation: "logoSet",
-    key: "title",
-  };
+  const secondaryLabelKeys =
+    relatedForm === "logoVariantForm"
+      ? {
+          relation: "logoSet",
+          key: "title",
+        }
+      : "";
   openPreviewSheet({
     sheetTitle: "Logo System",
     data: initialData[writeCfg[relatedForm].initialDataKey].documents,
