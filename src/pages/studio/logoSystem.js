@@ -12,6 +12,7 @@ import {
   gatherFormData,
   onClientSelect,
   onPreviewItemEdit,
+  setFormData,
   uploadFilesFromForm,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
@@ -28,10 +29,35 @@ const showDataBtn = $("[id='showData']");
 let selectedClientId;
 let initialData;
 let submittedData = {};
+let existingAttachmentIds = {};
 
 // Configuration mapping form IDs to database collections and data mapping functions
 const writeCfg = WRITE_CONFIG.logoSystem;
 const uploadPlan = UPLOAD_PLAN.logoSystem;
+
+async function removeLogoFiles({ pngFileId = "", svgFileId = "" }) {
+  try {
+    const removePngRes =
+      pngFileId !== "" &&
+      (await removeFile(APPWRITE.buckets.logos.id, pngFileId));
+    const removeSvgRes =
+      svgFileId !== "" &&
+      (await removeFile(APPWRITE.buckets.logos.id, svgFileId));
+
+    if (removePngRes || removeSvgRes) {
+      return true;
+    } else {
+      renderToast(
+        "Oeps!",
+        "Het is (deels) niet gelukt om de bestanden te verwijderen.",
+      );
+      return false;
+    }
+  } catch (err) {
+    console.error(err);
+    renderToast("Oeps!", getErrorMessage(err), "negative");
+  }
+}
 
 async function removeLogoVariant(docId) {
   try {
@@ -45,21 +71,18 @@ async function removeLogoVariant(docId) {
       return;
     }
 
-    const removePngRes = await removeFile(
-      APPWRITE.buckets.logos.id,
-      doc.png_file_id,
-    );
-    const removeSvgRes = await removeFile(
-      APPWRITE.buckets.logos.id,
-      doc.svg_file_id,
-    );
+    const removeFiles = await removeLogoFiles({
+      pngFileId: doc.png_file_id,
+      svgFileId: doc.svg_file_id,
+    });
+
     const docRemoveRes = await removeRow(
       APPWRITE.databases.logoSystem.id,
       APPWRITE.databases.logoSystem.collections.variants.id,
       doc.$id,
     );
 
-    if (removePngRes && removeSvgRes && docRemoveRes) {
+    if (removeFiles && docRemoveRes) {
       // Remove the deleted variant from the cached list so the UI stays in sync
       initialData.logoVariantResponse.documents =
         initialData.logoVariantResponse.documents.filter(
@@ -119,13 +142,17 @@ onClientSelect(async (clientId) => {
 onPreviewItemEdit((toBeEditedItem) => {
   console.log("I got this from the callback: ", toBeEditedItem);
 
-  /* 
-TODO:
-1. Set initialData() (need to know formId based on payload)
-2. Create function to manually set relationSelector through code or disable selector
-3. Create update logic in submitBtn handler
-*/
-  setInitialData(toBeEditedItem);
+  $(`#${toBeEditedItem.formId}`).attr(
+    "data-is-editing",
+    toBeEditedItem.item.$id,
+  );
+  $(".studio-card-text")
+    .find("h1")
+    .append(
+      `<span class='fg-50'> • ${toBeEditedItem.primaryLabel} wordt aangepast</span>`,
+    );
+  setButtonState($(".relation-input-wrapper > *"), "disable", false);
+  setInitialData(toBeEditedItem.item, toBeEditedItem.formId);
 });
 
 function setInitialData(data, formId) {
@@ -156,14 +183,17 @@ function setInitialData(data, formId) {
           logoSetDescription: data.notes,
           logoSetSortingOrder: data.sort_order,
         };
-
         break;
       case "logoVariantForm":
         pairs.logoVariantForm = {
-          logoSets: data.logoSet,
+          logoSets: data.logoSet.$id,
           logoVariant: data.variant_name,
           logoSetPreviewBg: data.preview_bg_hex,
           logoVariantSortingOrder: data.sort_order,
+        };
+        existingAttachmentIds = {
+          logoVariantPngVariant: data.png_file_id,
+          logoVariantSvgVariant: data.svg_file_id,
         };
         break;
     }
@@ -197,11 +227,13 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         const relatedForm = $(this).attr("data-related-form");
         const form = $(`#${relatedForm}`);
+        const isEditing = form.attr("data-is-editing");
 
         // Collect current form values; text inputs go to `data`, file inputs to `files`.
         submittedData = gatherFormData(form);
 
         let response;
+
         const clientData = await getClientById(selectedClientId);
         const teamId = clientData.auth.$id;
 
@@ -215,6 +247,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             uploadPlan,
           );
           console.log("Uploaded Files: ", uploadedIds);
+          console.log(submittedData);
         }
 
         console.log(
@@ -223,33 +256,92 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             submittedData.data,
             selectedClientId,
             uploadedIds,
-            "",
+            {
+              logoVariantPngVariant:
+                existingAttachmentIds.logoVariantPngVariant,
+              logoVariantSvgVariant:
+                existingAttachmentIds.logoVariantSvgVariant,
+            },
           ),
         );
 
-        response = await createDocument({
-          databaseId: APPWRITE.databases.logoSystem.id,
-          collectionId: writeCfg[relatedForm].collectionId,
-          data: writeCfg[relatedForm].mapToDb(
-            submittedData.data,
-            selectedClientId,
-            uploadedIds,
-            {
-              logoVariantPngVariant:
-                initialData.logoVariantResponse.png_file_id,
-              logoVariantSvgVariant:
-                initialData.logoVariantResponse.svg_file_id,
-            },
-          ),
-          permissions: [
-            Permission.read(Role.team(teamId)),
-            Permission.update(Role.team(teamId)),
-            Permission.delete(Role.team(teamId)),
-          ],
-        });
+        console.log(isEditing);
+
+        if (isEditing && isEditing !== "") {
+          console.log("Update document");
+
+          // If new files were uploaded during edit, remove the previous files first.
+          // Only remove a file type if a replacement was uploaded.
+          if (relatedForm === "logoVariantForm") {
+            const toRemove = {};
+
+            if (
+              uploadedIds.logoVariantPngVariant &&
+              existingAttachmentIds.logoVariantPngVariant
+            ) {
+              toRemove.pngFileId = existingAttachmentIds.logoVariantPngVariant;
+            }
+
+            if (
+              uploadedIds.logoVariantSvgVariant &&
+              existingAttachmentIds.logoVariantSvgVariant
+            ) {
+              toRemove.svgFileId = existingAttachmentIds.logoVariantSvgVariant;
+            }
+
+            if (toRemove.pngFileId || toRemove.svgFileId) {
+              const removed = await removeLogoFiles(toRemove);
+              if (!removed) {
+                // Stop the update if we couldn't clean up the old assets.
+                setButtonState($(this), "enable", true);
+                return;
+              }
+            }
+          }
+
+          response = await updateDocument({
+            databaseId: APPWRITE.databases.logoSystem.id,
+            documentId: isEditing,
+            collectionId: writeCfg[relatedForm].collectionId,
+            data: writeCfg[relatedForm].mapToDb(
+              submittedData.data,
+              selectedClientId,
+              uploadedIds,
+              {
+                logoVariantPngVariant:
+                  existingAttachmentIds.logoVariantPngVariant,
+                logoVariantSvgVariant:
+                  existingAttachmentIds.logoVariantSvgVariant,
+              },
+            ),
+          });
+        } else {
+          console.log("Create document");
+          response = await createDocument({
+            databaseId: APPWRITE.databases.logoSystem.id,
+            collectionId: writeCfg[relatedForm].collectionId,
+            data: writeCfg[relatedForm].mapToDb(
+              submittedData.data,
+              selectedClientId,
+              uploadedIds,
+              {
+                logoVariantPngVariant:
+                  existingAttachmentIds.logoVariantPngVariant,
+                logoVariantSvgVariant:
+                  existingAttachmentIds.logoVariantSvgVariant,
+              },
+            ),
+            permissions: [
+              Permission.read(Role.team(teamId)),
+              Permission.update(Role.team(teamId)),
+              Permission.delete(Role.team(teamId)),
+            ],
+          });
+        }
 
         if (response) {
           renderToast("Gelukt!", `Logo System is aangepast.`, "positive");
+          setButtonState($(this), "enable", true);
         }
       },
     );
@@ -281,19 +373,11 @@ showDataBtn.off("click.showData").on("click.showData", function () {
     canRemove: true,
     alternativeRemovalFunction: removeLogoVariant,
     canEdit: true,
+    formId: relatedForm,
   });
 });
 
 resetBtn.each((__, btn) => {
   const $btn = $(btn);
-
-  // Reset restores the form back to the last fetched state for the currently selected client.
-  $btn.off("click.reset").on("click.reset", function () {
-    const relatedForm = $(this).attr("data-related-form");
-
-    setInitialData(
-      initialData[writeCfg[relatedForm].initialDataKey],
-      relatedForm,
-    );
-  });
+  $btn.remove();
 });

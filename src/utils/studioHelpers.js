@@ -1,5 +1,6 @@
 import { uploadFile } from "../appwrite/storage";
 import logUploadProgress from "../ui/fileUploadProgress";
+import { selectRelations } from "../ui/studio/relationshipSelector";
 
 // Reads a Webflow form and splits the result into:
 // - `data`: all non-file inputs (text, select, checkbox, radio)
@@ -42,6 +43,8 @@ export function gatherFormData(form) {
 export function setFormData($form, data) {
   Object.entries(data).forEach(([name, value]) => {
     const $field = $form.find(`[name='${name}']`);
+
+    // console.log("Setting form data for: " + name + " value: " + value);
 
     if (!$field.length) return;
 

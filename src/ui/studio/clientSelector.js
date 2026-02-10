@@ -105,10 +105,10 @@ clientSelector.each(async (__, selector) => {
           tl.to($listItems, {
             autoAlpha: 1,
             yPercent: 0,
-            stagger: 0.1,
-            duration: 0.35,
+            stagger: 0.05,
+            duration: 0.3,
           });
-      }, "<25%");
+      }, "<");
   });
 
   // Hover State for ListItems (delegated; works with async appended items)

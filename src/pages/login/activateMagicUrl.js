@@ -19,7 +19,11 @@ $("#activateButton").on("click", async function () {
     const response = await account.updateMagicURLSession({ userId, secret });
 
     if (response) {
-      renderToast("Logged In!", "Redirecting to your dashboard...", "positive");
+      renderToast(
+        "Ingelogd!",
+        "Je wordt doorgestuurd naar het dashboard...",
+        "positive",
+      );
       setTimeout(() => {
         window.location.href = CONFIG.baseUrl;
       }, 2000);

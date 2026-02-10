@@ -45,10 +45,6 @@ logInButton.on("click", async function () {
   } else if (authUser) {
     window.location.href = CONFIG.baseUrl;
   } else {
-    renderToast(
-      "I'm missing something",
-      "You have to fill in your email.",
-      "warning"
-    );
+    renderToast("Ik mis iets", "Vul je email adres in", "warning");
   }
 });

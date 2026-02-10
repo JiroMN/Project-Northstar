@@ -25,6 +25,7 @@ function renderDataInSheet({
   canRemove,
   alternativeRemovalFunction,
   canEdit,
+  formId,
 }) {
   const $data = $(data);
 
@@ -112,8 +113,9 @@ function renderDataInSheet({
         .find(".studio-preview-sheet-list-item-button.edit")
         .off("click.editItem")
         .on("click.editItem", async function () {
-          console.log("Clicked edit on: ", item);
-          $(document).trigger("preview:itemEdit", item);
+          $(document).trigger("preview:itemEdit", [
+            { item, formId, primaryLabel },
+          ]);
           closePreviewSheet();
         });
     } else {
@@ -121,6 +123,7 @@ function renderDataInSheet({
     }
   });
 }
+
 /**
  * @param {string} params.sheetTitle - Title that shows on top
  * @param {object} params.data - Title that shows on top
@@ -128,6 +131,7 @@ function renderDataInSheet({
  * @param {string|object} params.secondaryLabelKey - Optional. Either a direct key string (e.g. "collab_start"), a relationship descriptor { relation, key }, or "" to disable.
  * @param {boolean} params.canRemove - Shows remove button based on value
  * **/
+
 export function openPreviewSheet({
   sheetTitle,
   data,
@@ -136,6 +140,7 @@ export function openPreviewSheet({
   canRemove = true,
   alternativeRemovalFunction,
   canEdit,
+  formId,
 }) {
   renderDataInSheet({
     data,
@@ -144,6 +149,7 @@ export function openPreviewSheet({
     canRemove,
     alternativeRemovalFunction,
     canEdit,
+    formId,
   });
 
   applyTextBindings(previewSheet, {

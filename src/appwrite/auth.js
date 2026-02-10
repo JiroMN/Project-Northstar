@@ -21,7 +21,7 @@ export async function checkAuth() {
     }
   } catch (err) {
     if (!window.location.href.startsWith(`${CONFIG.baseUrl}/login`)) {
-      renderToast("No account detected", getErrorMessage(err), "negative");
+      renderToast("Geen account gevonden", getErrorMessage(err), "negative");
       window.location.href = `${CONFIG.baseUrl}/login`;
     }
     return false;
@@ -64,7 +64,7 @@ export async function checkContinuityAccess(
     if (toast) {
       renderToast("Geen toegang", getErrorMessage(err), "negative");
     }
-    window.location.href = `${CONFIG.baseUrl}/login`;
+    window.location.href = `${CONFIG.baseUrl}/login?toast_title=Er is iets mis gegaan!&toast_message=${getErrorMessage(err)}&toast_variant=announcement`;
     return false;
   }
 }

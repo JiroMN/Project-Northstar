@@ -44,7 +44,6 @@ export async function updateDocument({
   collectionId,
   documentId,
   data,
-  permissions,
 }) {
   try {
     return await databases.updateDocument({

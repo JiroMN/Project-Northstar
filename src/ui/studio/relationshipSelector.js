@@ -34,7 +34,6 @@ relationshipSelector.each(async (__, relationshipSelector) => {
 
   onClientSelect(async (clientId) => {
     try {
-      console.log("Gathering data");
       selectedClientId = clientId;
       relationResponse = await getCollection(
         relRegistryItem.databaseId,
@@ -42,7 +41,9 @@ relationshipSelector.each(async (__, relationshipSelector) => {
         [Query.equal("client_id", clientId)],
       );
 
-      renderOptions(relationResponse);
+      setTimeout(() => {
+        renderOptions(relationResponse);
+      }, 500);
     } catch (err) {
       console.error("[relationshipSelector.js]", err);
     }
@@ -84,6 +85,8 @@ relationshipSelector.each(async (__, relationshipSelector) => {
 
   // Relationship Logic
   function handleSelect(id) {
+    console.log(id);
+
     if (isMultiple) {
       if (!selectedItems.includes(id)) {
         selectedItems.push(id);
@@ -111,7 +114,7 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   applyTextBindings($relationshipSelector, {
     placeholder: relRegistryItem.placeholder,
   });
-  $input.attr("name", relKey).attr("name", relKey); // Set input name to relationRegistry key
+  $input.attr("name", relKey).attr("id", relKey); // Set input name to relationRegistry key
 
   renderOptions(relationResponse);
 
@@ -119,45 +122,50 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   $relationshipSelector
     .off("click.openOptions")
     .on("click.openOptions", function () {
+      const isDisabled = $relationshipSelector.attr("data-disabled");
+      if (isDisabled) return;
       // Re-select list items because they are created async
       $listItems = $container.find(".relationship-input-list-item");
 
-      let tl = gsap
-        .timeline({
-          onStart: () => {
-            $relationshipSelector.css("pointer-events", "none");
-            $listItems.css("pointer-events", "none");
-          },
-          onComplete: () => {
-            $relationshipSelector.attr("data-is-opened", "true");
-            isOpened ? (isOpened = false) : (isOpened = true);
-            $relationshipSelector.css("pointer-events", "auto");
-            $listItems.css("pointer-events", "auto");
-          },
-        })
-        .set($listItems, { autoAlpha: 0, yPercent: 50 })
-        .fromTo(
-          $list,
-          {
-            yPercent: isOpened ? 0 : -25,
-            filter: isOpened ? "blur(0px)" : "blur(5px)",
-          },
-          {
-            yPercent: isOpened ? -25 : 0,
-            filter: isOpened ? "blur(5px)" : "blur(0px)",
-            autoAlpha: isOpened ? 0 : 1,
+      const tl = gsap.timeline({
+        onStart: () => {
+          $relationshipSelector.css("pointer-events", "none");
+          $listItems.css("pointer-events", "none");
+        },
+        onComplete: () => {
+          $relationshipSelector.attr("data-is-opened", "true");
+          isOpened ? (isOpened = false) : (isOpened = true);
+          $relationshipSelector.css("pointer-events", "auto");
+          $listItems.css("pointer-events", "auto");
+        },
+      });
+
+      tl.set($listItems, { autoAlpha: 0, yPercent: 50 });
+
+      tl.fromTo(
+        $list,
+        {
+          yPercent: isOpened ? 0 : -25,
+          filter: isOpened ? "blur(0px)" : "blur(5px)",
+        },
+        {
+          yPercent: isOpened ? -25 : 0,
+          filter: isOpened ? "blur(5px)" : "blur(0px)",
+          autoAlpha: isOpened ? 0 : 1,
+          duration: 0.35,
+        },
+      );
+
+      tl.add(() => {
+        if (!isOpened) {
+          tl.to($listItems, {
+            autoAlpha: 1,
+            yPercent: 0,
+            stagger: 0.1,
             duration: 0.35,
-          },
-        )
-        .add(() => {
-          !isOpened &&
-            tl.to($listItems, {
-              autoAlpha: 1,
-              yPercent: 0,
-              stagger: 0.1,
-              duration: 0.35,
-            });
-        }, "<25%");
+          });
+        }
+      }, "<25%");
     });
 
   // Hover State for ListItems (delegated; works with async appended items)
