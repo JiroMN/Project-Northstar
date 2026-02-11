@@ -109,6 +109,74 @@ export const WRITE_CONFIG = {
       }),
     },
   },
+  typographySystem: {
+    fontsForm: {
+      collectionId: APPWRITE.databases.typographySystem.collections.fonts.id,
+      initialDataKey: "fontsResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        name: data.fontName,
+        role: data.fontRole,
+        notes: data.fontNotes,
+        fontWeights: data.fontWeights,
+        typographyRules: data.typographyRules,
+        sort_order: parseInt(data.fontSortOrder),
+      }),
+    },
+    weightsForm: {
+      collectionId: APPWRITE.databases.typographySystem.collections.weights.id,
+      initialDataKey: "weightsResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        weight_num: data.weightNumber,
+        weight_txt: data.weightText,
+        style: data.fontStyle,
+        notes: data.fontNotes,
+        fonts: data.fonts,
+      }),
+    },
+    rulesForm: {
+      collectionId: APPWRITE.databases.typographySystem.collections.rules.id,
+      initialDataKey: "rulesResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        letterspacing_percent: data.logoSets,
+        line_height_percent: data.logoSets,
+        fonts: data.logoSets,
+      }),
+    },
+    clientScaleForm: {
+      collectionId:
+        APPWRITE.databases.typographySystem.collections.clientTypographyScale
+          .id,
+      initialDataKey: "clientScaleResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        base_px: data.basePx,
+        typographyScale: data.typographyScale,
+      }),
+    },
+  },
 };
 
 export const UPLOAD_PLAN = {

@@ -26,6 +26,7 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   // Relationregistry
   const relKey = $relationshipSelector.attr("data-rel-key");
   const relRegistryItem = RELATIONSHIPSELECTORS[relKey];
+  const boundToClient = relRegistryItem.boundToClient;
   // ClientData
   let selectedClientId = "";
   // Data
@@ -35,10 +36,11 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   onClientSelect(async (clientId) => {
     try {
       selectedClientId = clientId;
+      const queries = boundToClient ? [Query.equal("client_id", clientId)] : [];
       relationResponse = await getCollection(
         relRegistryItem.databaseId,
         relRegistryItem.collectionId,
-        [Query.equal("client_id", clientId)],
+        queries,
       );
 
       setTimeout(() => {
