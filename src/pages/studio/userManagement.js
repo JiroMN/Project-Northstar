@@ -22,13 +22,13 @@ let submittedData = {};
 
 submitBtn.off("click.submit").on("click.submit", async function (e) {
   e.preventDefault();
-  try {
-    renderModal(
-      "Weet je het zeker?",
-      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
-      "Annuleer",
-      "Ga Door",
-      async () => {
+  renderModal(
+    "Weet je het zeker?",
+    "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+    "Annuleer",
+    "Ga Door",
+    async () => {
+      try {
         const selectedClientId = $("body").attr("data-selected-client-id");
         if (!selectedClientId || selectedClientId == "") {
           renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
@@ -68,17 +68,22 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
           );
           initialData.documents.push(response.newDatabaseUser);
         }
-      },
-    );
-  } catch (err) {
-    console.error(err);
-    renderToast("Oeps!", getErrorMessage(err), "negative");
-  } finally {
-    setButtonState($(this), "enable", true);
-  }
+      } catch (err) {
+        console.error(err);
+        renderToast("Oeps!", getErrorMessage(err), "negative");
+      } finally {
+        setButtonState($(this), "enable", true);
+      }
+    },
+  );
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
+  const selectedClientId = $("body").attr("data-selected-client-id");
+  if (!selectedClientId || selectedClientId == "") {
+    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+    return;
+  }
   console.log("Clicked ShowData...");
   openPreviewSheet({
     sheetTitle: "Gebruikers",

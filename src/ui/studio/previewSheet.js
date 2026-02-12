@@ -31,39 +31,82 @@ function renderDataInSheet({
 
   dataList.children().not(dataListItemTemplate).remove();
 
+  function resolveLabelValue(item, keyDef) {
+    if (!keyDef) return "";
+
+    if (typeof keyDef === "string") {
+      return item[keyDef] ?? "";
+    }
+
+    if (typeof keyDef === "object") {
+      const relation = keyDef.relation;
+      const key = keyDef.key;
+      const join = keyDef.join ?? ", ";
+
+      if (!relation || !key || !item[relation]) return "";
+
+      if (Array.isArray(item[relation])) {
+        return item[relation]
+          .map((row) => row?.[key])
+          .filter((val) => val !== undefined && val !== null && val !== "")
+          .join(join);
+      }
+
+      if (typeof item[relation] === "object") {
+        return item[relation][key] ?? "";
+      }
+    }
+
+    return "";
+  }
+
+  if (!$data || $data.length < 1) {
+    dataList.html(
+      "<p class='sm fg-50 text-align-center'>Er is nog geen data</p>",
+    );
+  }
+  let lastGroupKey = null;
+
   $data.each((__, item) => {
     const clone = dataListItemTemplate.clone(true);
-    clone
-      .attr("id", "")
-      .css("display", "flex")
-      .appendTo(dataList)
-      .attr("data-row-id", item.$id);
+    clone.attr("id", "").css("display", "flex").attr("data-row-id", item.$id);
 
     const primaryLabel = labelKeys
-      .map((key) => item[key])
+      .map((keyDef) => resolveLabelValue(item, keyDef))
       .filter((val) => val !== undefined && val !== null && val !== "")
       .join(" ");
 
     let secondaryLabel = "";
+    let groupLabel = "";
 
     // Secondary label can be:
-    // - "" (disabled)
+    // - "" (date only)
     // - a direct key string (e.g. "collab_start")
-    // - a relationship descriptor: { relation: "company", key: "name" }
+    // - a relationship descriptor: { relation, key, join? }
     if (typeof secondaryLabelKey === "string") {
       if (secondaryLabelKey === "") {
         secondaryLabel = `${formatDateTime(item.$updatedAt)}`;
       } else {
-        secondaryLabel = `${item[secondaryLabelKey]}  •  ${formatDateTime(item.$updatedAt)}`;
+        secondaryLabel = `${formatDateTime(item.$updatedAt)}  •  ${item[secondaryLabelKey]}`;
       }
     } else if (secondaryLabelKey && typeof secondaryLabelKey === "object") {
-      const relation = secondaryLabelKey.relation;
-      const key = secondaryLabelKey.key;
-
-      if (relation && key && item[relation]) {
-        secondaryLabel = `${relation}: ${item[relation][key]}  •  ${formatDateTime(item.$updatedAt)}`;
-      }
+      const resolved = resolveLabelValue(item, secondaryLabelKey);
+      secondaryLabel =
+        resolved !== ""
+          ? `${formatDateTime(item.$updatedAt)}  •  ${resolved}`
+          : `${formatDateTime(item.$updatedAt)}`;
+      groupLabel = resolved !== "" ? resolved : "Onbekend";
     }
+
+    if (groupLabel && groupLabel !== lastGroupKey) {
+      lastGroupKey = groupLabel;
+      const $groupHeading = $(
+        `<h2 class="studio-preview-sheet-list-group-title sm fg-50">[${secondaryLabelKey.relation}] ${groupLabel}</h2>`,
+      );
+      $groupHeading.appendTo(dataList);
+    }
+
+    clone.appendTo(dataList);
 
     applyTextBindings(clone, {
       "primary-label": primaryLabel,
@@ -126,9 +169,15 @@ function renderDataInSheet({
 
 /**
  * @param {string} params.sheetTitle - Title that shows on top
- * @param {object} params.data - Title that shows on top
- * @param {array} params.labelKeys - Array of key name inside of data param. This decides what labels get shown
- * @param {string|object} params.secondaryLabelKey - Optional. Either a direct key string (e.g. "collab_start"), a relationship descriptor { relation, key }, or "" to disable.
+ * @param {object[]} params.data - Data records that get rendered in the list
+ * @param {(string|object)[]} params.labelKeys - Primary label resolvers.
+ *  - Top-level keys: ["name", "tone"]
+ *  - Relation (single): [{ relation: "company", key: "name" }]
+ *  - Relation (array): [{ relation: "toVTraits", key: "name", join: " • " }]
+ * @param {string|object} params.secondaryLabelKey - Optional secondary resolver.
+ *  - "" renders updated date only
+ *  - "description" reads a top-level value
+ *  - { relation, key, join? } reads relation data (also supports relation arrays)
  * @param {boolean} params.canRemove - Shows remove button based on value
  * **/
 
@@ -142,6 +191,17 @@ export function openPreviewSheet({
   canEdit,
   formId,
 }) {
+  console.log(`Opening sheet ${data?.length ?? 0}`);
+  const selectedClientId = $("body").attr("data-selected-client-id");
+  if (!selectedClientId || selectedClientId === "") {
+    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+    return;
+  }
+  if (!data || data.length < 1) {
+    renderToast("Ik mis wat!", "Er is nog geen data.", "warning");
+    return;
+  }
+
   renderDataInSheet({
     data,
     labelKeys,

@@ -133,13 +133,13 @@ function setInitialData(data, formId) {
 // Single submit handler for all form cards; the clicked button decides which form and config to use.
 submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
-  try {
-    renderModal(
-      "Weet je het zeker?",
-      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
-      "Annuleer",
-      "Ga Door",
-      async () => {
+  renderModal(
+    "Weet je het zeker?",
+    "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+    "Annuleer",
+    "Ga Door",
+    async () => {
+      try {
         if (!selectedClientId || selectedClientId == "") {
           renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
           return;
@@ -195,14 +195,14 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
         if (response) {
           renderToast("Gelukt!", `Brand essence is aangepast.`, "positive");
         }
-      },
-    );
-  } catch (err) {
-    console.error(err);
-    renderToast("Oeps!", getErrorMessage(err), "negative");
-  } finally {
-    setButtonState($(this), "enable", true);
-  }
+      } catch (err) {
+        console.error(err);
+        renderToast("Oeps!", getErrorMessage(err), "negative");
+      } finally {
+        setButtonState($(this), "enable", true);
+      }
+    },
+  );
 });
 
 // This page does not expose raw data previews; the button is removed intentionally.

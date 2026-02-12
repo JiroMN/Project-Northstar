@@ -26,6 +26,11 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
+  const selectedClientId = $("body").attr("data-selected-client-id");
+  if (!selectedClientId || selectedClientId == "") {
+    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+    return;
+  }
   console.log("Clicked ShowData...");
   openPreviewSheet("Kleuren", colorTokens.documents, ["title", "tone"], {
     relation: "colorPalette",

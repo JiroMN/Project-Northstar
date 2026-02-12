@@ -1,6 +1,39 @@
 import { Permission, Role } from "appwrite";
 import APPWRITE from "./public";
 
+function parseRelationInput(value, returnSingle = false) {
+  if (Array.isArray(value)) {
+    return returnSingle ? (value[0] ?? "") : value;
+  }
+
+  if (value == null) {
+    return returnSingle ? "" : [];
+  }
+
+  const raw = String(value).trim();
+  if (raw === "") {
+    return returnSingle ? "" : [];
+  }
+
+  // Supports both JSON strings (e.g. ["id1","id2"]) and plain comma strings (e.g. id1,id2)
+  if (raw.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(raw);
+      const arr = Array.isArray(parsed) ? parsed : [];
+      return returnSingle ? (arr[0] ?? "") : arr;
+    } catch (err) {
+      // Fall through to comma-split parsing below.
+    }
+  }
+
+  const arr = raw
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
+
+  return returnSingle ? (arr[0] ?? "") : arr;
+}
+
 export const WRITE_CONFIG = {
   brandEssence: {
     corePurposeForm: {
@@ -109,6 +142,31 @@ export const WRITE_CONFIG = {
       }),
     },
   },
+  colorSystem: {
+    colorPaletteForm: {
+      collectionId: APPWRITE.databases.colorSystem.collections.palettes.id,
+      initialDataKey: "colorPalettesResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        title: data.colorPaletteName,
+        notes: data.colorPaletteDescription,
+      }),
+    },
+    colorTokenForm: {
+      collectionId: APPWRITE.databases.colorSystem.collections.tokens.id,
+      initialDataKey: "colorTokensResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        colorPalette: parseRelationInput(data.colorPalettes, true),
+        title: data.colorTokenTitle,
+        tone: data.colorTokenTone,
+        hex: data.colorTokenHex,
+        rgba: data.colorTokenRGBA,
+        cmyk: data.colorTokenCMYK,
+        hsl: data.colorTokenHSL,
+      }),
+    },
+  },
   typographySystem: {
     fontsForm: {
       collectionId: APPWRITE.databases.typographySystem.collections.fonts.id,
@@ -123,8 +181,8 @@ export const WRITE_CONFIG = {
         name: data.fontName,
         role: data.fontRole,
         notes: data.fontNotes,
-        fontWeights: data.fontWeights,
-        typographyRules: data.typographyRules,
+        fontWeights: parseRelationInput(data.fontWeights),
+        typographyRules: parseRelationInput(data.typographyRules),
         sort_order: parseInt(data.fontSortOrder),
       }),
     },
@@ -138,11 +196,12 @@ export const WRITE_CONFIG = {
         existingAttachmentIds,
       ) => ({
         client_id: selectedClientId,
-        weight_num: data.weightNumber,
+        weight_num: parseInt(data.weightNumber),
         weight_txt: data.weightText,
         style: data.fontStyle,
         notes: data.fontNotes,
-        fonts: data.fonts,
+        sort_order: parseInt(data.weightSortOrder),
+        fonts: parseRelationInput(data.fonts),
       }),
     },
     rulesForm: {
@@ -155,9 +214,9 @@ export const WRITE_CONFIG = {
         existingAttachmentIds,
       ) => ({
         client_id: selectedClientId,
-        letterspacing_percent: data.logoSets,
-        line_height_percent: data.logoSets,
-        fonts: data.logoSets,
+        letterspacing_percent: parseFloat(data.letterSpacingPercent),
+        line_height_percent: parseFloat(data.lineHeightPercent),
+        fonts: parseRelationInput(data.fonts),
       }),
     },
     clientScaleForm: {
@@ -172,8 +231,47 @@ export const WRITE_CONFIG = {
         existingAttachmentIds,
       ) => ({
         client_id: selectedClientId,
-        base_px: data.basePx,
-        typographyScale: data.typographyScale,
+        base_px: parseInt(data.basePx),
+        typographyScale: parseRelationInput(data.typographyScale, true), // Single relation expected by Appwrite schema.
+      }),
+    },
+  },
+  typographyCommunication: {
+    traitsForm: {
+      collectionId: APPWRITE.databases.toneOfVoice.collections.traits.id,
+      initialDataKey: "traitsResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        name: data.traitName,
+        description: data.traitDescription,
+      }),
+    },
+    examplesForm: {
+      collectionId: APPWRITE.databases.toneOfVoice.collections.examples.id,
+      initialDataKey: "examplesResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        example: data.example,
+      }),
+    },
+    traitsExampleForm: {
+      collectionId:
+        APPWRITE.databases.toneOfVoice.collections.examplesTraits.id,
+      initialDataKey: "traitsExamplesResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        toVExample: parseRelationInput(data.example, true),
+        toVTraits: parseRelationInput(data.traits),
       }),
     },
   },

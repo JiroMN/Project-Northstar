@@ -15,6 +15,13 @@ export const RELATIONSHIPSELECTORS = {
     labelKey: "title",
     boundToClient: true,
   },
+  colorPalettes: {
+    databaseId: APPWRITE.databases.colorSystem.id,
+    collectionId: APPWRITE.databases.colorSystem.collections.palettes.id,
+    placeholder: "Kleuren Palet",
+    labelKey: "title",
+    boundToClient: true,
+  },
   fontWeights: {
     databaseId: APPWRITE.databases.typographySystem.id,
     collectionId: APPWRITE.databases.typographySystem.collections.weights.id,
@@ -42,6 +49,20 @@ export const RELATIONSHIPSELECTORS = {
     placeholder: "Typography Scale",
     labelKey: "name",
     boundToClient: false,
+  },
+  traits: {
+    databaseId: APPWRITE.databases.toneOfVoice.id,
+    collectionId: APPWRITE.databases.toneOfVoice.collections.traits.id,
+    placeholder: "Persoonlijkheidseigenschap",
+    labelKey: "name",
+    boundToClient: true,
+  },
+  example: {
+    databaseId: APPWRITE.databases.toneOfVoice.id,
+    collectionId: APPWRITE.databases.toneOfVoice.collections.examples.id,
+    placeholder: "Voorbeeld",
+    labelKey: "example",
+    boundToClient: true,
   },
 };
 

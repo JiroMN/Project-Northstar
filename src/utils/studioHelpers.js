@@ -44,6 +44,7 @@ export function setFormData($form, data) {
   Object.entries(data).forEach(([name, value]) => {
     const $field = $form.find(`[name='${name}']`);
 
+    console.log($form);
     // console.log("Setting form data for: " + name + " value: " + value);
 
     if (!$field.length) return;
@@ -67,6 +68,26 @@ export function setFormData($form, data) {
 
     $field.val(value);
   });
+}
+
+// Normalizes Appwrite relationship values to an array of IDs.
+// Supports:
+// - string -> ["id"]
+// - { $id } -> ["id"]
+// - ["id", { $id }, ...] -> ["id", ...]
+// - null/undefined/empty -> []
+export function getRelationIds(value) {
+  if (value == null || value === "") return [];
+
+  const values = Array.isArray(value) ? value : [value];
+
+  return values
+    .map((entry) => {
+      if (typeof entry === "string") return entry;
+      if (entry && typeof entry === "object" && entry.$id) return entry.$id;
+      return "";
+    })
+    .filter((id) => id !== "");
 }
 
 const clientSelectSubscribers = new Set();

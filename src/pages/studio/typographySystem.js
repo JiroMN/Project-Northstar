@@ -10,6 +10,7 @@ import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import {
   gatherFormData,
+  getRelationIds,
   onClientSelect,
   onPreviewItemEdit,
   setFormData,
@@ -39,22 +40,38 @@ async function gatherTypoSystemData(clientId) {
     const fontsResponse = await getCollection(
       APPWRITE.databases.typographySystem.id,
       APPWRITE.databases.typographySystem.collections.fonts.id,
-      [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
+      [
+        Query.equal("client_id", clientId),
+        Query.orderDesc("$updatedAt"),
+        Query.select(["*", "fontWeights.*", "typographyRules.*"]),
+      ],
     );
     const weightsResponse = await getCollection(
       APPWRITE.databases.typographySystem.id,
       APPWRITE.databases.typographySystem.collections.weights.id,
-      [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
+      [
+        Query.equal("client_id", clientId),
+        Query.orderDesc("$updatedAt"),
+        Query.select(["*", "fonts.*"]),
+      ],
     );
     const rulesResponse = await getCollection(
       APPWRITE.databases.typographySystem.id,
       APPWRITE.databases.typographySystem.collections.rules.id,
-      [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
+      [
+        Query.equal("client_id", clientId),
+        Query.orderDesc("$updatedAt"),
+        Query.select(["*", "fonts.*"]),
+      ],
     );
     const clientScaleResponse = await getCollection(
       APPWRITE.databases.typographySystem.id,
       APPWRITE.databases.typographySystem.collections.clientTypographyScale.id,
-      [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
+      [
+        Query.equal("client_id", clientId),
+        Query.orderDesc("$updatedAt"),
+        Query.select(["*", "typographyScale.*"]),
+      ],
     );
 
     // Store fetched data for reset/prefill
@@ -77,22 +94,25 @@ async function gatherTypoSystemData(clientId) {
 onClientSelect(async (clientId) => {
   selectedClientId = clientId;
   initialData = await gatherTypoSystemData(clientId);
-  console.log(initialData);
+  console.log("Initial Data: ", initialData);
 });
 
 onPreviewItemEdit((toBeEditedItem) => {
   console.log("I got this from the callback: ", toBeEditedItem);
 
-  $(`#${toBeEditedItem.formId}`).attr(
-    "data-is-editing",
-    toBeEditedItem.item.$id,
-  );
-  $(".studio-card-text")
+  const $form = $(`#${toBeEditedItem.formId}`);
+  const $cardTitle = $form
+    .closest(".studio-card")
+    .find(".studio-card-text")
     .find("h1")
-    .append(
-      `<span class='fg-50'> • ${toBeEditedItem.primaryLabel} wordt aangepast</span>`,
-    );
-  setButtonState($(".relation-input-wrapper > *"), "disable", false);
+    .first();
+
+  $form.attr("data-is-editing", toBeEditedItem.item.$id);
+  $cardTitle.find("span").remove();
+  $cardTitle.append(
+    `<span class='fg-50'> • ${toBeEditedItem.primaryLabel} wordt aangepast</span>`,
+  );
+  setButtonState($form.find(".relation-input-wrapper > *"), "disable", false);
   setInitialData(toBeEditedItem.item, toBeEditedItem.formId);
 });
 
@@ -115,10 +135,11 @@ function setInitialData(data, formId) {
       weightText: "",
       fontStyle: "",
       fontNotes: "",
+      weightSortOrder: "",
       fonts: "",
     },
     rulesForm: {
-      letterspacingPercent: "",
+      letterSpacingPercent: "",
       lineHeightPercent: "",
       fonts: "",
     },
@@ -136,8 +157,8 @@ function setInitialData(data, formId) {
           fontName: data.name,
           fontRole: data.role,
           fontNotes: data.notes,
-          fontWeights: data.fontWeights?.$id ?? data.fontWeights,
-          typographyRules: data.typographyRules?.$id ?? data.typographyRules,
+          fontWeights: JSON.stringify(getRelationIds(data.fontWeights)),
+          typographyRules: JSON.stringify(getRelationIds(data.typographyRules)),
           fontSortOrder: data.sort_order,
         };
         break;
@@ -147,20 +168,21 @@ function setInitialData(data, formId) {
           weightText: data.weight_txt,
           fontStyle: data.style,
           fontNotes: data.notes,
-          fonts: data.fonts?.$id ?? data.fonts,
+          weightSortOrder: data.sort_order,
+          fonts: JSON.stringify(getRelationIds(data.fonts)),
         };
         break;
       case "rulesForm":
         pairs.rulesForm = {
-          letterspacingPercent: data.letterspacing_percent,
+          letterSpacingPercent: data.letterspacing_percent,
           lineHeightPercent: data.line_height_percent,
-          fonts: data.fonts?.$id ?? data.fonts,
+          fonts: JSON.stringify(getRelationIds(data.fonts)),
         };
         break;
       case "clientScaleForm":
         pairs.clientScaleForm = {
           basePx: data.base_px,
-          typographyScale: data.typographyScale?.$id ?? data.typographyScale,
+          typographyScale: JSON.stringify(getRelationIds(data.typographyScale)),
         };
         break;
     }
@@ -177,13 +199,13 @@ function setInitialData(data, formId) {
 
 submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
-  try {
-    renderModal(
-      "Weet je het zeker?",
-      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
-      "Annuleer",
-      "Ga Door",
-      async () => {
+  renderModal(
+    "Weet je het zeker?",
+    "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+    "Annuleer",
+    "Ga Door",
+    async () => {
+      try {
         if (!selectedClientId || selectedClientId == "") {
           renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
           return;
@@ -204,99 +226,55 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
         const clientData = await getClientById(selectedClientId);
         const teamId = clientData.auth.$id;
 
-        // Create a new document and assign team-based permissions so the client team owns the data.
-        let uploadedIds = {};
-
-        if (relatedForm === "logoVariantForm") {
-          uploadedIds = await uploadFilesFromForm(
-            submittedData.files,
-            teamId,
-            uploadPlan,
-          );
-          console.log("Uploaded Files: ", uploadedIds);
-          console.log(submittedData);
-        }
-
         console.log(
           "Submitted data: ",
           writeCfg[relatedForm].mapToDb(
             submittedData.data,
             selectedClientId,
-            uploadedIds,
-            {
-              logoVariantPngVariant:
-                existingAttachmentIds.logoVariantPngVariant,
-              logoVariantSvgVariant:
-                existingAttachmentIds.logoVariantSvgVariant,
-            },
+            {},
+            {},
           ),
         );
-
-        console.log(isEditing);
 
         if (isEditing && isEditing !== "") {
           console.log("Update document");
 
-          // If new files were uploaded during edit, remove the previous files first.
-          // Only remove a file type if a replacement was uploaded.
-          if (relatedForm === "logoVariantForm") {
-            const toRemove = {};
-
-            if (
-              uploadedIds.logoVariantPngVariant &&
-              existingAttachmentIds.logoVariantPngVariant
-            ) {
-              toRemove.pngFileId = existingAttachmentIds.logoVariantPngVariant;
-            }
-
-            if (
-              uploadedIds.logoVariantSvgVariant &&
-              existingAttachmentIds.logoVariantSvgVariant
-            ) {
-              toRemove.svgFileId = existingAttachmentIds.logoVariantSvgVariant;
-            }
-
-            if (toRemove.pngFileId || toRemove.svgFileId) {
-              const removed = await removeLogoFiles(toRemove);
-              if (!removed) {
-                // Stop the update if we couldn't clean up the old assets.
-                setButtonState($(this), "enable", true);
-                return;
-              }
-            }
-          }
-
           response = await updateDocument({
-            databaseId: APPWRITE.databases.logoSystem.id,
+            databaseId: APPWRITE.databases.typographySystem.id,
             documentId: isEditing,
             collectionId: writeCfg[relatedForm].collectionId,
             data: writeCfg[relatedForm].mapToDb(
               submittedData.data,
               selectedClientId,
-              uploadedIds,
-              {
-                logoVariantPngVariant:
-                  existingAttachmentIds.logoVariantPngVariant,
-                logoVariantSvgVariant:
-                  existingAttachmentIds.logoVariantSvgVariant,
-              },
+              {},
+              {},
             ),
           });
         } else {
           console.log("Create document");
+
+          // Block when user wants to create second typography scale
+          if (
+            relatedForm === "clientScaleForm" &&
+            initialData.clientScaleResponse.total > 0
+          ) {
+            renderToast(
+              "Onuitvoerbare actie!",
+              "Je kan niet meer dan één typografieschaal toevoegen.",
+              "warning",
+              3500,
+            );
+            return;
+          }
+
           response = await createDocument({
-            databaseId: APPWRITE.databases.logoSystem.id,
+            databaseId: APPWRITE.databases.typographySystem.id,
             collectionId: writeCfg[relatedForm].collectionId,
             data: writeCfg[relatedForm].mapToDb(
               submittedData.data,
               selectedClientId,
-              uploadedIds,
-              {
-                logoVariantPngVariant:
-                  existingAttachmentIds.logoVariantPngVariant,
-                logoVariantSvgVariant:
-                  existingAttachmentIds.logoVariantSvgVariant,
-              },
+              {},
+              {},
             ),
             permissions: [
               Permission.read(Role.team(teamId)),
@@ -307,38 +285,60 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
         }
 
         if (response) {
-          renderToast("Gelukt!", `Logo System is aangepast.`, "positive");
+          renderToast("Gelukt!", `Typography System is aangepast.`, "positive");
           setButtonState($(this), "enable", true);
         }
-      },
-    );
-  } catch (err) {
-    console.error(err);
-    renderToast("Oeps!", getErrorMessage(err), "negative");
-  } finally {
-    setButtonState($(this), "enable", true);
-  }
+      } catch (err) {
+        console.error(err);
+        renderToast("Oeps!", getErrorMessage(err), "negative");
+      } finally {
+        setButtonState($(this), "enable", true);
+      }
+    },
+  );
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
+  if (!selectedClientId || selectedClientId == "") {
+    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+    return;
+  }
   const relatedForm = $(this).attr("data-related-form");
-  console.log(writeCfg[relatedForm], relatedForm);
-  const labelKeys =
-    relatedForm === "logoVariantForm" ? ["variant_name"] : ["title"];
-  const secondaryLabelKeys =
-    relatedForm === "logoVariantForm"
-      ? {
-          relation: "logoSet",
-          key: "title",
-        }
-      : "";
+  let sheetTitle = "";
+  let labelKeys;
+  let secondaryLabelKeys;
+
+  switch (relatedForm) {
+    case "fontsForm":
+      sheetTitle = "Alle Fonts";
+      labelKeys = ["name"];
+      secondaryLabelKeys = "role";
+      break;
+    case "weightsForm":
+      sheetTitle = "Alle Stijlen";
+      labelKeys = ["weight_txt"];
+      secondaryLabelKeys = "style";
+      break;
+    case "rulesForm":
+      sheetTitle = "Font Regels";
+      labelKeys = ["letterspacing_percent", "line_height_percent"];
+      break;
+    case "clientScaleForm":
+      sheetTitle = "Typografie schaal";
+      labelKeys = ["base_px"];
+      secondaryLabelKeys = {
+        relation: "typographyScale",
+        key: "name",
+      };
+      break;
+  }
+
   openPreviewSheet({
-    sheetTitle: "Logo System",
+    sheetTitle: sheetTitle,
     data: initialData[writeCfg[relatedForm].initialDataKey].documents,
     labelKeys: labelKeys,
     secondaryLabelKey: secondaryLabelKeys,
     canRemove: true,
-    alternativeRemovalFunction: removeLogoVariant,
     canEdit: true,
     formId: relatedForm,
   });

@@ -142,15 +142,18 @@ onClientSelect(async (clientId) => {
 onPreviewItemEdit((toBeEditedItem) => {
   console.log("I got this from the callback: ", toBeEditedItem);
 
-  $(`#${toBeEditedItem.formId}`).attr(
-    "data-is-editing",
-    toBeEditedItem.item.$id,
-  );
-  $(".studio-card-text")
+  const $form = $(`#${toBeEditedItem.formId}`);
+  const $cardTitle = $form
+    .closest(".studio-card")
+    .find(".studio-card-text")
     .find("h1")
-    .append(
-      `<span class='fg-50'> • ${toBeEditedItem.primaryLabel} wordt aangepast</span>`,
-    );
+    .first();
+
+  $form.attr("data-is-editing", toBeEditedItem.item.$id);
+  $cardTitle.find("span").remove();
+  $cardTitle.append(
+    `<span class='fg-50'> • ${toBeEditedItem.primaryLabel} wordt aangepast</span>`,
+  );
   setButtonState($(".relation-input-wrapper > *"), "disable", false);
   setInitialData(toBeEditedItem.item, toBeEditedItem.formId);
 });
@@ -210,13 +213,13 @@ function setInitialData(data, formId) {
 
 submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
-  try {
-    renderModal(
-      "Weet je het zeker?",
-      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
-      "Annuleer",
-      "Ga Door",
-      async () => {
+  renderModal(
+    "Weet je het zeker?",
+    "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+    "Annuleer",
+    "Ga Door",
+    async () => {
+      try {
         if (!selectedClientId || selectedClientId == "") {
           renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
           return;
@@ -247,7 +250,6 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             uploadPlan,
           );
           console.log("Uploaded Files: ", uploadedIds);
-          console.log(submittedData);
         }
 
         console.log(
@@ -264,8 +266,6 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             },
           ),
         );
-
-        console.log(isEditing);
 
         if (isEditing && isEditing !== "") {
           console.log("Update document");
@@ -343,19 +343,23 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
           renderToast("Gelukt!", `Logo System is aangepast.`, "positive");
           setButtonState($(this), "enable", true);
         }
-      },
-    );
-  } catch (err) {
-    console.error(err);
-    renderToast("Oeps!", getErrorMessage(err), "negative");
-  } finally {
-    setButtonState($(this), "enable", true);
-  }
+      } catch (err) {
+        console.error(err);
+        renderToast("Oeps!", getErrorMessage(err), "negative");
+      } finally {
+        setButtonState($(this), "enable", true);
+      }
+    },
+  );
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
+  if (!selectedClientId || selectedClientId == "") {
+    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+    return;
+  }
   const relatedForm = $(this).attr("data-related-form");
-  console.log(writeCfg[relatedForm], relatedForm);
+
   const labelKeys =
     relatedForm === "logoVariantForm" ? ["variant_name"] : ["title"];
   const secondaryLabelKeys =

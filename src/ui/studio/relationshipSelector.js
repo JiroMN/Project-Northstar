@@ -9,12 +9,18 @@ import { onClientSelect } from "../../utils/studioHelpers";
 const relationshipSelector = $(".relationship-input");
 const relationshipSelectorList = $(".relationship-input-list");
 const listItemTemplate = $("#relationshipListItemTemplate").detach();
+let relationShipAmount = 0;
 
 gsap.set(relationshipSelectorList, { display: "flex", autoAlpha: 0 });
 
-relationshipSelector.each(async (__, relationshipSelector) => {
+relationshipSelector.each(async (index, relationshipSelector) => {
   const $relationshipSelector = $(relationshipSelector);
   const $container = $relationshipSelector.parent();
+  relationShipAmount++;
+  /* Z-Index Styling fix */
+  const currentZ = $container.css("z-index");
+  $container.css("z-index", currentZ - parseInt(relationShipAmount));
+  /* Z-Index Styling fix */
   const $input = $container.find("input");
   const $list = $container.find(".relationship-input-list");
   let $listItems = $container.find(".relationship-input-list-item");
@@ -52,7 +58,6 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   });
 
   function renderOptions(res) {
-    console.log("rendering options");
     $list.html("");
 
     let message =
@@ -121,53 +126,59 @@ relationshipSelector.each(async (__, relationshipSelector) => {
   renderOptions(relationResponse);
 
   // Event Handlers
+  function toggleOptions() {
+    const isDisabled = $relationshipSelector.attr("data-disabled");
+    if (isDisabled) return;
+    // Re-select list items because they are created async
+    $listItems = $container.find(".relationship-input-list-item");
+
+    const tl = gsap.timeline({
+      onStart: () => {
+        $relationshipSelector.css("pointer-events", "none");
+        $listItems.css("pointer-events", "none");
+      },
+      onComplete: () => {
+        $relationshipSelector.attr("data-is-opened", "true");
+        isOpened ? (isOpened = false) : (isOpened = true);
+        $relationshipSelector.css("pointer-events", "auto");
+        $listItems.css("pointer-events", "auto");
+      },
+    });
+
+    tl.set($listItems, { autoAlpha: 0, yPercent: 50 });
+
+    tl.fromTo(
+      $list,
+      {
+        yPercent: isOpened ? 0 : -25,
+        filter: isOpened ? "blur(0px)" : "blur(5px)",
+      },
+      {
+        yPercent: 0,
+        filter: isOpened ? "blur(5px)" : "blur(0px)",
+        autoAlpha: isOpened ? 0 : 1,
+        duration: 0.35,
+      },
+    );
+
+    tl.add(() => {
+      if (!isOpened) {
+        const itemCount = $listItems.length;
+        const stagger = itemCount > 10 ? 0.015 : 0.05;
+        tl.to($listItems, {
+          autoAlpha: 1,
+          yPercent: 0,
+          stagger: stagger,
+          duration: 0.35,
+        });
+      }
+    }, "<25%");
+  }
+
   $relationshipSelector
     .off("click.openOptions")
     .on("click.openOptions", function () {
-      const isDisabled = $relationshipSelector.attr("data-disabled");
-      if (isDisabled) return;
-      // Re-select list items because they are created async
-      $listItems = $container.find(".relationship-input-list-item");
-
-      const tl = gsap.timeline({
-        onStart: () => {
-          $relationshipSelector.css("pointer-events", "none");
-          $listItems.css("pointer-events", "none");
-        },
-        onComplete: () => {
-          $relationshipSelector.attr("data-is-opened", "true");
-          isOpened ? (isOpened = false) : (isOpened = true);
-          $relationshipSelector.css("pointer-events", "auto");
-          $listItems.css("pointer-events", "auto");
-        },
-      });
-
-      tl.set($listItems, { autoAlpha: 0, yPercent: 50 });
-
-      tl.fromTo(
-        $list,
-        {
-          yPercent: isOpened ? 0 : -25,
-          filter: isOpened ? "blur(0px)" : "blur(5px)",
-        },
-        {
-          yPercent: isOpened ? -25 : 0,
-          filter: isOpened ? "blur(5px)" : "blur(0px)",
-          autoAlpha: isOpened ? 0 : 1,
-          duration: 0.35,
-        },
-      );
-
-      tl.add(() => {
-        if (!isOpened) {
-          tl.to($listItems, {
-            autoAlpha: 1,
-            yPercent: 0,
-            stagger: 0.1,
-            duration: 0.35,
-          });
-        }
-      }, "<25%");
+      toggleOptions();
     });
 
   // Hover State for ListItems (delegated; works with async appended items)
@@ -237,5 +248,6 @@ relationshipSelector.each(async (__, relationshipSelector) => {
 
       // Update input value
       handleSelect($item.attr("data-document-id"));
+      !isMultiple && toggleOptions();
     });
 });

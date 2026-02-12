@@ -22,13 +22,13 @@ let submittedData = {};
 
 submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
-  try {
-    renderModal(
-      "Weet je het zeker?",
-      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
-      "Annuleer",
-      "Ga Door",
-      async () => {
+  renderModal(
+    "Weet je het zeker?",
+    "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+    "Annuleer",
+    "Ga Door",
+    async () => {
+      try {
         // Handle button states
         if ($(this).attr("data-disable") === "true") return;
         setButtonState($(this), "loading", false);
@@ -78,17 +78,22 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             message: addCompanyRes.message,
           };
         }
-      },
-    );
-  } catch (err) {
-    renderToast("Oeps!", getErrorMessage(err), "negative");
-    console.error(err);
-  } finally {
-    setButtonState($(this), "enable", true);
-  }
+      } catch (err) {
+        renderToast("Oeps!", getErrorMessage(err), "negative");
+        console.error(err);
+      } finally {
+        setButtonState($(this), "enable", true);
+      }
+    },
+  );
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
+  const selectedClientId = $("body").attr("data-selected-client-id");
+  if (!selectedClientId || selectedClientId == "") {
+    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
+    return;
+  }
   const previewData = initialData.database;
   openPreviewSheet("Clients", previewData, ["name"], "", false);
 });

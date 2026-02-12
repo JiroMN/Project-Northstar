@@ -63,13 +63,13 @@ function setInitialData(data) {
 
 submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
-  try {
-    renderModal(
-      "Weet je het zeker?",
-      "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
-      "Annuleer",
-      "Ga Door",
-      async () => {
+  renderModal(
+    "Weet je het zeker?",
+    "Je gaat iets aanpassen dat niet terug gedraaid kan worden.",
+    "Annuleer",
+    "Ga Door",
+    async () => {
+      try {
         if (!selectedClientId || selectedClientId == "") {
           renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
           return;
@@ -121,14 +121,14 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
         if (response) {
           renderToast("Gelukt!", `Resources zijn aangepast van.`, "positive");
         }
-      },
-    );
-  } catch (err) {
-    console.error(err);
-    renderToast("Oeps!", getErrorMessage(err), "negative");
-  } finally {
-    setButtonState($(this), "enable", true);
-  }
+      } catch (err) {
+        console.error(err);
+        renderToast("Oeps!", getErrorMessage(err), "negative");
+      } finally {
+        setButtonState($(this), "enable", true);
+      }
+    },
+  );
 });
 
 showDataBtn.remove();
