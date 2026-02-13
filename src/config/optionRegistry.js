@@ -22,6 +22,13 @@ export const RELATIONSHIPSELECTORS = {
     labelKey: "title",
     boundToClient: true,
   },
+  galleryAlbums: {
+    databaseId: APPWRITE.databases.gallery.id,
+    collectionId: APPWRITE.databases.gallery.collections.albums.id,
+    placeholder: "Album",
+    labelKey: "name",
+    boundToClient: true,
+  },
   fontWeights: {
     databaseId: APPWRITE.databases.typographySystem.id,
     collectionId: APPWRITE.databases.typographySystem.collections.weights.id,

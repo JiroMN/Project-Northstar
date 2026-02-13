@@ -3,6 +3,7 @@ import { disappearToRight } from "../../animations/helpers/micro";
 import { removeRow } from "../../appwrite/db";
 import { applyTextBindings } from "../../utils/dataBinding";
 import { formatDateTime } from "../../utils/helpers";
+import { triggerDataChange } from "../../utils/studioHelpers";
 import { renderModal } from "../modal";
 import { renderToast } from "../toast";
 
@@ -101,7 +102,7 @@ function renderDataInSheet({
     if (groupLabel && groupLabel !== lastGroupKey) {
       lastGroupKey = groupLabel;
       const $groupHeading = $(
-        `<h2 class="studio-preview-sheet-list-group-title sm fg-50">[${secondaryLabelKey.relation}] ${groupLabel}</h2>`,
+        `<h2 class="studio-preview-sheet-list-group-title sm fg-50">${groupLabel}</h2>`,
       );
       $groupHeading.appendTo(dataList);
     }
@@ -124,25 +125,34 @@ function renderDataInSheet({
             "Annuleer",
             "Verwijder",
             async () => {
-              if (previewSheet.attr("data-disabled") === "true") return;
-              setButtonState(previewSheet, "loading", false);
-              let response;
-              if (alternativeRemovalFunction) {
-                response = await alternativeRemovalFunction(item.$id);
-              } else {
-                response = await removeRow(
-                  item.$databaseId,
-                  item.$collectionId,
-                  item.$id,
-                );
-              }
-              if (response) {
-                renderToast(
-                  "Gelukt!",
-                  `${primaryLabel} is verwijderd.`,
-                  "positive",
-                );
-                clone.remove();
+              try {
+                if (previewSheet.attr("data-disabled") === "true") return;
+                setButtonState(previewSheet, "loading", false);
+                let response;
+                if (alternativeRemovalFunction) {
+                  response = await alternativeRemovalFunction(item.$id);
+                } else {
+                  response = await removeRow(
+                    item.$databaseId,
+                    item.$collectionId,
+                    item.$id,
+                  );
+                }
+                if (response) {
+                  renderToast(
+                    "Gelukt!",
+                    `${primaryLabel} is verwijderd.`,
+                    "positive",
+                  );
+                  clone.remove();
+                  triggerDataChange({
+                    clientId: $("body").attr("data-selected-client-id"),
+                  });
+                }
+              } catch (err) {
+                console.error(err);
+                renderToast("Oeps!", "Verwijderen is mislukt.", "negative");
+              } finally {
                 setButtonState($(previewSheet), "enable", true);
               }
             },
@@ -190,10 +200,11 @@ export function openPreviewSheet({
   alternativeRemovalFunction,
   canEdit,
   formId,
+  requireSelectedClient = true,
 }) {
   console.log(`Opening sheet ${data?.length ?? 0}`);
   const selectedClientId = $("body").attr("data-selected-client-id");
-  if (!selectedClientId || selectedClientId === "") {
+  if (requireSelectedClient && (!selectedClientId || selectedClientId === "")) {
     renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
     return;
   }

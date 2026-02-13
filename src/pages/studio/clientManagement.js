@@ -1,5 +1,9 @@
 import APPWRITE from "../../config/public";
-import { gatherFormData } from "../../utils/studioHelpers";
+import {
+  gatherFormData,
+  onDataChange,
+  triggerDataChange,
+} from "../../utils/studioHelpers";
 import { checkAuth } from "../../appwrite/auth";
 import { uploadFile } from "../../appwrite/storage";
 import logUploadProgress from "../../ui/fileUploadProgress";
@@ -17,8 +21,18 @@ const showDataBtn = $("#showData");
 
 // const addCompany = await addCompany(await check);
 
-let initialData = await getAllClients();
+let initialData;
 let submittedData = {};
+
+async function refreshClientsData() {
+  initialData = await getAllClients();
+}
+
+await refreshClientsData();
+
+onDataChange(async () => {
+  await refreshClientsData();
+});
 
 submitBtn.off("click.submit").on("click.submit", function (e) {
   e.preventDefault();
@@ -73,6 +87,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             "Bedrijf is toegevoegd aan TheBrand.Book",
             "positive",
           );
+          triggerDataChange({});
         } else {
           throw {
             message: addCompanyRes.message,
@@ -89,13 +104,16 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 });
 
 showDataBtn.off("click.showData").on("click.showData", function () {
-  const selectedClientId = $("body").attr("data-selected-client-id");
-  if (!selectedClientId || selectedClientId == "") {
-    renderToast("Onvolledig!", "Selecteer een bedrijf", "warning");
-    return;
-  }
-  const previewData = initialData.database;
-  openPreviewSheet("Clients", previewData, ["name"], "", false);
+  const previewData = initialData.database ?? [];
+  openPreviewSheet({
+    sheetTitle: "Bedrijven",
+    data: previewData,
+    labelKeys: ["name"],
+    secondaryLabelKey: "team_id",
+    canRemove: false,
+    canEdit: false,
+    requireSelectedClient: false,
+  });
 });
 resetBtn.off("click.reset").on("click.reset", function () {
   console.log("Clicked Reset...");

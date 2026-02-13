@@ -8,8 +8,10 @@ import {
 import APPWRITE from "../../config/public";
 import {
   gatherFormData,
+  onDataChange,
   onClientSelect,
   setFormData,
+  triggerDataChange,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
@@ -31,10 +33,9 @@ let initialData;
 let submittedData = {};
 let selectedClientId;
 
-// React to client selection: set active client context, fetch latest data per form,
-// then prefill each form so the UI reflects the current client state.
-onClientSelect(async (clientId) => {
-  selectedClientId = clientId;
+async function refreshBrandEssenceData(clientId = selectedClientId) {
+  if (!clientId) return;
+
   const corePurposeResponse = await getCollection(
     APPWRITE.databases.brandEssence.id,
     APPWRITE.databases.brandEssence.collections.corePurpose.id,
@@ -51,12 +52,24 @@ onClientSelect(async (clientId) => {
     [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
   );
 
-  // Store fetched data for reset/prefill
   initialData = { corePurposeResponse, onlinessResponse, truelineResponse };
 
   setInitialData(corePurposeResponse, "corePurposeForm");
   setInitialData(onlinessResponse, "onlinessForm");
   setInitialData(truelineResponse, "truelineForm");
+}
+
+// React to client selection: set active client context, fetch latest data per form,
+// then prefill each form so the UI reflects the current client state.
+onClientSelect(async (clientId) => {
+  selectedClientId = clientId;
+  await refreshBrandEssenceData(clientId);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  await refreshBrandEssenceData(selectedClientId);
 });
 
 function setInitialData(data, formId) {
@@ -194,6 +207,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         if (response) {
           renderToast("Gelukt!", `Brand essence is aangepast.`, "positive");
+          triggerDataChange({ clientId: selectedClientId });
         }
       } catch (err) {
         console.error(err);

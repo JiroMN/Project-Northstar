@@ -167,6 +167,30 @@ export const WRITE_CONFIG = {
       }),
     },
   },
+  gallery: {
+    albumForm: {
+      collectionId: APPWRITE.databases.gallery.collections.albums.id,
+      initialDataKey: "albumsResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        name: data.albumName,
+      }),
+    },
+    fileForm: {
+      collectionId: APPWRITE.databases.gallery.collections.images.id,
+      initialDataKey: "filesResponse",
+      mapToDb: (
+        data,
+        selectedClientId,
+        uploadedFileIds,
+        existingAttachmentIds,
+      ) => ({
+        client_id: selectedClientId,
+        galleryCategory: parseRelationInput(data.galleryAlbums, true),
+        file_id: uploadedFileIds.galleryFile ?? existingAttachmentIds.galleryFile,
+      }),
+    },
+  },
   continuity: {
     subscriptionsForm: {
       collectionId: APPWRITE.databases.continuity.collections.subscriptions.id,
@@ -335,6 +359,16 @@ export const UPLOAD_PLAN = {
     },
     logoVariantSvgVariant: {
       bucketId: APPWRITE.buckets.logos.id,
+      permissions: (teamId) => [
+        Permission.read(Role.team(teamId)),
+        Permission.update(Role.team(teamId)),
+        Permission.delete(Role.team(teamId)),
+      ],
+    },
+  },
+  gallery: {
+    galleryFile: {
+      bucketId: APPWRITE.buckets.gallery.id,
       permissions: (teamId) => [
         Permission.read(Role.team(teamId)),
         Permission.update(Role.team(teamId)),

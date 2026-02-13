@@ -2,7 +2,11 @@ import { Query } from "appwrite";
 import { getClientById, getCollection } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
-import { gatherFormData } from "../../utils/studioHelpers";
+import {
+  gatherFormData,
+  onDataChange,
+  triggerDataChange,
+} from "../../utils/studioHelpers";
 import { addUser, removeUser } from "../../appwrite/functions";
 import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
@@ -13,12 +17,22 @@ const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
 const showDataBtn = $("#showData");
 
-let initialData = await getCollection(
-  APPWRITE.databases.accounts.id,
-  APPWRITE.databases.accounts.collections.users.id,
-  [Query.select(["*", "client.name"]), Query.orderDesc("$updatedAt")],
-);
+let initialData;
 let submittedData = {};
+
+async function refreshUsersData() {
+  initialData = await getCollection(
+    APPWRITE.databases.accounts.id,
+    APPWRITE.databases.accounts.collections.users.id,
+    [Query.select(["*", "client.name"]), Query.orderDesc("$updatedAt")],
+  );
+}
+
+await refreshUsersData();
+
+onDataChange(async () => {
+  await refreshUsersData();
+});
 
 submitBtn.off("click.submit").on("click.submit", async function (e) {
   e.preventDefault();
@@ -67,6 +81,7 @@ submitBtn.off("click.submit").on("click.submit", async function (e) {
             "positive",
           );
           initialData.documents.push(response.newDatabaseUser);
+          triggerDataChange({ clientId: selectedClientId });
         }
       } catch (err) {
         console.error(err);

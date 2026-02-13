@@ -9,8 +9,10 @@ import APPWRITE from "../../config/public";
 import {
   gatherFormData,
   getUploadTargetsFromForm,
+  onDataChange,
   onClientSelect,
   setFormData,
+  triggerDataChange,
   uploadFilesFromForm,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
@@ -35,10 +37,9 @@ let initialData;
 let submittedData = {};
 let selectedClientId;
 
-// React to client selection: set active client context, fetch latest data per form,
-// then prefill each form so the UI reflects the current client state.
-onClientSelect(async (clientId) => {
-  selectedClientId = clientId;
+async function refreshBrandStoryData(clientId = selectedClientId) {
+  if (!clientId) return;
+
   const visionResponse = await getCollection(
     APPWRITE.databases.brandStory.id,
     APPWRITE.databases.brandStory.collections.vision.id,
@@ -50,13 +51,23 @@ onClientSelect(async (clientId) => {
     [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
   );
 
-  // Store fetched data for reset/prefill
   initialData = { visionResponse, obituaryResponse };
-
-  console.log(initialData);
 
   setInitialData(visionResponse, "visionForm");
   setInitialData(obituaryResponse, "obituaryForm");
+}
+
+// React to client selection: set active client context, fetch latest data per form,
+// then prefill each form so the UI reflects the current client state.
+onClientSelect(async (clientId) => {
+  selectedClientId = clientId;
+  await refreshBrandStoryData(clientId);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  await refreshBrandStoryData(selectedClientId);
 });
 
 function setInitialData(data, formId) {
@@ -67,9 +78,11 @@ function setInitialData(data, formId) {
   let pairs = {
     visionForm: {
       visionDescription: "",
+      visionAttachment: "",
     },
     obituaryForm: {
       obituary: "",
+      obituaryAttachment: "",
     },
   };
 
@@ -79,12 +92,14 @@ function setInitialData(data, formId) {
       case "visionForm":
         pairs.visionForm = {
           visionDescription: data.description,
+          visionAttachment: data.attachment_id ?? "",
         };
 
         break;
       case "obituaryForm":
         pairs.obituaryForm = {
           obituary: data.obituary,
+          obituaryAttachment: data.attachment_id ?? "",
         };
         break;
     }
@@ -212,6 +227,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         if (response) {
           renderToast("Gelukt!", `Brand story is aangepast.`, "positive");
+          triggerDataChange({ clientId: selectedClientId });
         }
       } catch (err) {
         console.error(err);

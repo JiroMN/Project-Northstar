@@ -39,9 +39,27 @@ relationshipSelector.each(async (index, relationshipSelector) => {
   let selectedItems = [];
   let relationResponse;
 
+  function resetSelectorState() {
+    selectedItems = [];
+    $input.val("");
+    applyTextBindings($relationshipSelector, {
+      placeholder: relRegistryItem.placeholder,
+    });
+
+    $list.find(".relationship-input-list-item").removeClass("selected");
+    gsap.set($list.find(".relationship-input-list-item"), {
+      clearProps: "backgroundColor,color",
+    });
+
+    isOpened = false;
+    $relationshipSelector.attr("data-is-opened", "false");
+    gsap.set($list, { autoAlpha: 0 });
+  }
+
   onClientSelect(async (clientId) => {
     try {
       selectedClientId = clientId;
+      resetSelectorState();
       const queries = boundToClient ? [Query.equal("client_id", clientId)] : [];
       relationResponse = await getCollection(
         relRegistryItem.databaseId,

@@ -22,7 +22,7 @@ module.exports = {
     ["pages/studio/typographyCommunication"]:
       "./src/pages/studio/typographyCommunication.js",
     ["pages/studio/colorSystem"]: "./src/pages/studio/colorSystem.js",
-    ["pages/studio/gallery"]: "./src/pages/studio/testPage.js",
+    ["pages/studio/gallery"]: "./src/pages/studio/gallery.js",
     ["pages/studio/continuity"]: "./src/pages/studio/continuity.js",
 
     ["pages/dashboard"]: "./src/pages/dashboard.js",

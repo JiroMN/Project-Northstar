@@ -8,8 +8,10 @@ import {
 import APPWRITE from "../../config/public";
 import {
   gatherFormData,
+  onDataChange,
   onClientSelect,
   setFormData,
+  triggerDataChange,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
@@ -24,8 +26,8 @@ let initialData;
 let submittedData = {};
 let selectedClientId;
 
-onClientSelect(async (clientId) => {
-  selectedClientId = clientId;
+async function refreshDashboardData(clientId = selectedClientId) {
+  if (!clientId) return;
   const resourcesResponse = await getCollection(
     APPWRITE.databases.general.id,
     APPWRITE.databases.general.collections.resources.id,
@@ -33,6 +35,17 @@ onClientSelect(async (clientId) => {
   );
   initialData = resourcesResponse;
   setInitialData(resourcesResponse);
+}
+
+onClientSelect(async (clientId) => {
+  selectedClientId = clientId;
+  await refreshDashboardData(clientId);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  await refreshDashboardData(selectedClientId);
 });
 
 function setInitialData(data) {
@@ -120,6 +133,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         if (response) {
           renderToast("Gelukt!", `Resources zijn aangepast van.`, "positive");
+          triggerDataChange({ clientId: selectedClientId });
         }
       } catch (err) {
         console.error(err);

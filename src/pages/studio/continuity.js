@@ -9,9 +9,11 @@ import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import {
   gatherFormData,
+  onDataChange,
   onClientSelect,
   onPreviewItemEdit,
   setFormData,
+  triggerDataChange,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
@@ -61,6 +63,12 @@ async function gatherContinuityData(clientId) {
 onClientSelect(async (clientId) => {
   selectedClientId = clientId;
   initialData = await gatherContinuityData(clientId);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  initialData = await gatherContinuityData(selectedClientId);
 });
 
 onPreviewItemEdit((toBeEditedItem) => {
@@ -196,6 +204,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         if (response) {
           renderToast("Gelukt!", `Continuity is aangepast.`, "positive");
+          triggerDataChange({ clientId: selectedClientId });
           setButtonState($(this), "enable", true);
         }
       } catch (err) {

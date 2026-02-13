@@ -1,6 +1,46 @@
-import { uploadFile } from "../appwrite/storage";
+import { getFile, getFilePreview, uploadFile } from "../appwrite/storage";
 import logUploadProgress from "../ui/fileUploadProgress";
 import { selectRelations } from "../ui/studio/relationshipSelector";
+import { UPLOAD_PLAN } from "../config/studio";
+
+function applyLiveFileUploadPreview($field, file) {
+  if (!file) return;
+
+  const $uploadUI = $field.closest(".file-upload-ui");
+  const $preview = $uploadUI
+    .find(".file-upload-ui-elements-preview, .file-upload-ui-element-preview")
+    .first();
+  const $previewImage = $preview.is("img")
+    ? $preview
+    : $preview.find("img").first();
+  const $icon = $uploadUI
+    .find(".file-upload-ui-elements-icon, .file-upload-ui-element-icon")
+    .first();
+
+  const objectUrl = URL.createObjectURL(file);
+
+  if ($previewImage.length) {
+    $previewImage
+      .attr("src", objectUrl)
+      .attr("srcset", `${objectUrl} 100w, ${objectUrl} 400w, ${objectUrl} 800w`)
+      .attr("sizes", "100vw")
+      .css("display", "block");
+  } else if ($preview.length) {
+    $preview.css("background-image", `url('${objectUrl}')`);
+  }
+
+  $preview.css("display", "block");
+  $icon.css("display", "none");
+  $uploadUI.find("[data-bind='file-name']").text(file.name);
+}
+
+$(document)
+  .off("change.studioFileUploadPreview", "input[type='file']")
+  .on("change.studioFileUploadPreview", "input[type='file']", function () {
+    const file = this?.files?.[0];
+    if (!file) return;
+    applyLiveFileUploadPreview($(this), file);
+  });
 
 // Reads a Webflow form and splits the result into:
 // - `data`: all non-file inputs (text, select, checkbox, radio)
@@ -41,6 +81,107 @@ export function gatherFormData(form) {
 // Writes values back into a form by matching object keys to input `name` attributes
 // Handles different input types (checkbox, radio, select, text)
 export function setFormData($form, data) {
+  function resolveBucketIdForField(fieldName) {
+    for (const plan of Object.values(UPLOAD_PLAN)) {
+      if (plan?.[fieldName]?.bucketId) {
+        return plan[fieldName].bucketId;
+      }
+    }
+
+    return null;
+  }
+
+  async function renderFilePreviewInField($field, fileId) {
+    if (!fileId) return;
+
+    const bucketId = resolveBucketIdForField($field.attr("name"));
+    if (!bucketId) return;
+
+    try {
+      console.log("[setFormData:file-preview] start", {
+        fieldName: $field.attr("name"),
+        fileId,
+        bucketId,
+      });
+
+      const previewLow = await getFilePreview(bucketId, fileId, 100);
+      const previewMid = await getFilePreview(bucketId, fileId, 400);
+      const previewHigh = await getFilePreview(bucketId, fileId, 800);
+      const file = await getFile(bucketId, fileId);
+
+      console.log("[setFormData:file-preview] sources", {
+        previewLow,
+        previewMid,
+        previewHigh,
+        fileName: file?.name,
+      });
+
+      const $uploadUI = $field.closest(".file-upload-ui");
+      const $preview = $uploadUI
+        .find(".file-upload-ui-elements-preview, .file-upload-ui-element-preview")
+        .first();
+      const $previewImage = $preview.is("img")
+        ? $preview
+        : $preview.find("img").first();
+      const $icon = $uploadUI
+        .find(".file-upload-ui-elements-icon, .file-upload-ui-element-icon")
+        .first();
+
+      console.log("[setFormData:file-preview] dom", {
+        uploadUiFound: $uploadUI.length > 0,
+        previewFound: $preview.length > 0,
+        previewIsImage: $preview.is("img"),
+        previewImageFound: $previewImage.length > 0,
+        iconFound: $icon.length > 0,
+      });
+
+      if ($preview.length) {
+        if ($previewImage.length) {
+          console.log("[setFormData:file-preview] applying image src/srcset");
+          $previewImage
+            .attr("src", previewHigh)
+            .attr(
+              "srcset",
+              `${previewLow} 100w, ${previewMid} 400w, ${previewHigh} 800w`.trim(),
+            )
+            .attr("sizes", "100vw");
+          $previewImage.css("display", "block");
+        } else {
+          console.log("[setFormData:file-preview] applying background-image");
+          $preview
+            .css("background-image", `url('${previewHigh}')`)
+            .attr(
+              "data-srcset",
+              `${previewLow} 100w, ${previewMid} 400w, ${previewHigh} 800w`.trim(),
+            );
+        }
+
+        $preview.css("display", "block");
+      }
+
+      if ($icon.length) {
+        $icon.css("display", "none");
+      } else {
+        $uploadUI.find("svg").first().css("display", "none");
+      }
+
+      if (file?.name) {
+        $uploadUI.find("[data-bind='file-name']").text(file.name);
+      }
+    } catch (err) {
+      console.error("[setFormData:file-preview]", err);
+    }
+  }
+
+  function bindLiveFilePreview($field) {
+    $field.off("change.liveFilePreview").on("change.liveFilePreview", function () {
+      const input = this;
+      const file = input?.files?.[0];
+      if (!file) return;
+      applyLiveFileUploadPreview($field, file);
+    });
+  }
+
   Object.entries(data).forEach(([name, value]) => {
     const $field = $form.find(`[name='${name}']`);
     // console.log("Setting form data for: " + name + " value: " + value);
@@ -71,6 +212,12 @@ export function setFormData($form, data) {
 
     if ($field.is("select")) {
       $field.val(value).trigger("change");
+      return;
+    }
+
+    if (type === "file") {
+      bindLiveFilePreview($field);
+      renderFilePreviewInField($field, value);
       return;
     }
 
@@ -165,6 +312,37 @@ export function onPreviewItemEdit(fn) {
   if (lastPreviewItemEditPayload) fn(lastPreviewItemEditPayload);
 
   return () => previewItemEditSubscribers.delete(fn);
+}
+
+const dataChangeSubscribers = new Set();
+let dataChangeListenerAttached = false;
+
+function attachDataChangeListener() {
+  if (dataChangeListenerAttached) return;
+  dataChangeListenerAttached = true;
+
+  $(document).on("studio:dataChange.onDataChange", (__, payload) => {
+    dataChangeSubscribers.forEach((cb) => {
+      try {
+        cb(payload ?? {});
+      } catch (err) {
+        console.error("[onDataChange] subscriber error", err);
+      }
+    });
+  });
+}
+
+export function onDataChange(fn) {
+  if (typeof fn !== "function") return () => {};
+
+  attachDataChangeListener();
+  dataChangeSubscribers.add(fn);
+
+  return () => dataChangeSubscribers.delete(fn);
+}
+
+export function triggerDataChange(payload = {}) {
+  $(document).trigger("studio:dataChange", [payload]);
 }
 
 // Determines which file inputs actually contain a selected file and

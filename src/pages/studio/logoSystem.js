@@ -10,9 +10,11 @@ import APPWRITE from "../../config/public";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import {
   gatherFormData,
+  onDataChange,
   onClientSelect,
   onPreviewItemEdit,
   setFormData,
+  triggerDataChange,
   uploadFilesFromForm,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
@@ -104,6 +106,42 @@ async function removeLogoVariant(docId) {
   }
 }
 
+async function removeLogoSet(docId) {
+  try {
+    const hasRelatedVariants = initialData.logoVariantResponse.documents.some(
+      (variant) => variant.logoSet?.$id === docId,
+    );
+
+    if (hasRelatedVariants) {
+      renderToast(
+        "Kan niet verwijderen",
+        "Verwijder eerst alle varianten binnen deze set voordat je de set kan verwijderen.",
+        "warning",
+        4000,
+      );
+      return false;
+    }
+
+    const removeRes = await removeRow(
+      APPWRITE.databases.logoSystem.id,
+      APPWRITE.databases.logoSystem.collections.sets.id,
+      docId,
+    );
+
+    if (removeRes) {
+      initialData.logoSetResponse.documents =
+        initialData.logoSetResponse.documents.filter((d) => d.$id !== docId);
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    console.error(err);
+    renderToast("Oeps!", getErrorMessage(err), "negative");
+    return false;
+  }
+}
+
 async function gatherLogoSystemData(clientId) {
   try {
     const logoSetResponse = await getCollection(
@@ -137,6 +175,12 @@ onClientSelect(async (clientId) => {
   selectedClientId = clientId;
   initialData = await gatherLogoSystemData(clientId);
   console.log(initialData);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  initialData = await gatherLogoSystemData(selectedClientId);
 });
 
 onPreviewItemEdit((toBeEditedItem) => {
@@ -174,6 +218,8 @@ function setInitialData(data, formId) {
       logoVariant: "",
       logoSetPreviewBg: "",
       logoVariantSortingOrder: "",
+      logoVariantPngVariant: "",
+      logoVariantSvgVariant: "",
     },
   };
 
@@ -193,6 +239,8 @@ function setInitialData(data, formId) {
           logoVariant: data.variant_name,
           logoSetPreviewBg: data.preview_bg_hex,
           logoVariantSortingOrder: data.sort_order,
+          logoVariantPngVariant: data.png_file_id ?? "",
+          logoVariantSvgVariant: data.svg_file_id ?? "",
         };
         existingAttachmentIds = {
           logoVariantPngVariant: data.png_file_id,
@@ -341,6 +389,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         if (response) {
           renderToast("Gelukt!", `Logo System is aangepast.`, "positive");
+          triggerDataChange({ clientId: selectedClientId });
           setButtonState($(this), "enable", true);
         }
       } catch (err) {
@@ -375,7 +424,12 @@ showDataBtn.off("click.showData").on("click.showData", function () {
     labelKeys: labelKeys,
     secondaryLabelKey: secondaryLabelKeys,
     canRemove: true,
-    alternativeRemovalFunction: removeLogoVariant,
+    alternativeRemovalFunction:
+      relatedForm === "logoVariantForm"
+        ? removeLogoVariant
+        : relatedForm === "logoSetForm"
+          ? removeLogoSet
+          : null,
     canEdit: true,
     formId: relatedForm,
   });

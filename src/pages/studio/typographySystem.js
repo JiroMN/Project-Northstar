@@ -11,9 +11,11 @@ import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import {
   gatherFormData,
   getRelationIds,
+  onDataChange,
   onClientSelect,
   onPreviewItemEdit,
   setFormData,
+  triggerDataChange,
   uploadFilesFromForm,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
@@ -95,6 +97,12 @@ onClientSelect(async (clientId) => {
   selectedClientId = clientId;
   initialData = await gatherTypoSystemData(clientId);
   console.log("Initial Data: ", initialData);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  initialData = await gatherTypoSystemData(selectedClientId);
 });
 
 onPreviewItemEdit((toBeEditedItem) => {
@@ -286,6 +294,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
         if (response) {
           renderToast("Gelukt!", `Typography System is aangepast.`, "positive");
+          triggerDataChange({ clientId: selectedClientId });
           setButtonState($(this), "enable", true);
         }
       } catch (err) {

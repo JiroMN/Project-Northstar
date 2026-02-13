@@ -10,9 +10,11 @@ import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import {
   gatherFormData,
   getRelationIds,
+  onDataChange,
   onClientSelect,
   onPreviewItemEdit,
   setFormData,
+  triggerDataChange,
 } from "../../utils/studioHelpers";
 import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
@@ -70,6 +72,12 @@ onClientSelect(async (clientId) => {
   selectedClientId = clientId;
   initialData = await gatherTypographyCommunicationData(clientId);
   console.log(initialData);
+});
+
+onDataChange(async ({ clientId }) => {
+  if (!selectedClientId) return;
+  if (clientId && clientId !== selectedClientId) return;
+  initialData = await gatherTypographyCommunicationData(selectedClientId);
 });
 
 onPreviewItemEdit((toBeEditedItem) => {
@@ -204,6 +212,7 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             `Typography Communication is aangepast.`,
             "positive",
           );
+          triggerDataChange({ clientId: selectedClientId });
           setButtonState($(this), "enable", true);
         }
       } catch (err) {
