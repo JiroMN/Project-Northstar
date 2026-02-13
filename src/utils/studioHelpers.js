@@ -43,8 +43,6 @@ export function gatherFormData(form) {
 export function setFormData($form, data) {
   Object.entries(data).forEach(([name, value]) => {
     const $field = $form.find(`[name='${name}']`);
-
-    console.log($form);
     // console.log("Setting form data for: " + name + " value: " + value);
 
     if (!$field.length) return;
@@ -52,7 +50,17 @@ export function setFormData($form, data) {
     const type = $field.attr("type");
 
     if (type === "checkbox") {
-      $field.prop("checked", Boolean(value));
+      const nextChecked = Boolean(value);
+      $field.prop("checked", nextChecked).trigger("change");
+      return;
+    }
+
+    if (type === "date") {
+      const dateValue =
+        typeof value === "string" && value.length >= 10
+          ? value.slice(0, 10)
+          : value;
+      $field.val(dateValue);
       return;
     }
 

@@ -64,6 +64,13 @@ export const RELATIONSHIPSELECTORS = {
     labelKey: "example",
     boundToClient: true,
   },
+  subscriptions: {
+    databaseId: APPWRITE.databases.continuity.id,
+    collectionId: APPWRITE.databases.continuity.collections.packages.id,
+    placeholder: "Abonnement",
+    labelKey: "name",
+    boundToClient: false,
+  },
 };
 
 export const SELECTS = {

@@ -167,6 +167,31 @@ export const WRITE_CONFIG = {
       }),
     },
   },
+  continuity: {
+    subscriptionsForm: {
+      collectionId: APPWRITE.databases.continuity.collections.subscriptions.id,
+      initialDataKey: "subscriptionsResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        continuityPackage: parseRelationInput(data.subscriptions, true),
+      }),
+    },
+    timelogsForm: {
+      collectionId: APPWRITE.databases.continuity.collections.timelogs.id,
+      initialDataKey: "timelogsResponse",
+      mapToDb: (data, selectedClientId) => ({
+        client_id: selectedClientId,
+        title: data.timelogTitle,
+        description: data.timelogDescription,
+        work_type: data.timelogWorkType,
+        date: data.timelogDate,
+        hours: parseFloat(data.timelogWorkedHours),
+        isReservedConsultingSessions: Boolean(
+          data.timelogReservedContinuityHours,
+        ),
+      }),
+    },
+  },
   typographySystem: {
     fontsForm: {
       collectionId: APPWRITE.databases.typographySystem.collections.fonts.id,
