@@ -47,8 +47,6 @@ async function gatherContinuityData(clientId) {
       [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
     );
 
-    console.log(timelogsResponse);
-
     return { subscriptionsResponse, timelogsResponse };
   } catch (err) {
     console.error(err);
@@ -102,6 +100,7 @@ function setInitialData(data, formId) {
       case "subscriptionsForm":
         pairs.subscriptionsForm = {
           subscriptions: data.continuityPackage?.$id ?? "",
+          subscriptionId: data.stripe_subscription_id,
         };
         break;
       case "timelogsForm":

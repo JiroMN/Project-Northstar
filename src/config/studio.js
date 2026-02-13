@@ -174,6 +174,7 @@ export const WRITE_CONFIG = {
       mapToDb: (data, selectedClientId) => ({
         client_id: selectedClientId,
         continuityPackage: parseRelationInput(data.subscriptions, true),
+        stripe_subscription_id: data.stripeSubscriptionId,
       }),
     },
     timelogsForm: {
