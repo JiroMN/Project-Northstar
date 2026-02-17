@@ -60,12 +60,20 @@ export default async ({ req, res, log }) => {
       templateId: internalTemplateId,
     });
 
+    if (!internalEmail?.id) {
+      throw new Error("Internal email send did not return a valid id");
+    }
+
     // 2) Only after internal mail succeeded, send confirmation to customer
     const customerEmailResult = await sendEmail({
       to: customerEmail,
       subject: customerSubject,
       templateId: customerTemplateId,
     });
+
+    if (!customerEmailResult?.id) {
+      throw new Error("Customer email send did not return a valid id");
+    }
 
     return res.json({
       ok: true,
@@ -78,6 +86,6 @@ export default async ({ req, res, log }) => {
     return res.json({
       ok: false,
       error: error.message,
-    });
+    }, 500);
   }
 };

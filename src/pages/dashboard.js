@@ -12,7 +12,11 @@ import { getFileDownload } from "../appwrite/storage";
 import APPWRITE from "../config/public";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
-import { daysUntil, getCssValueFromVarName } from "../utils/helpers";
+import {
+  daysUntil,
+  getCssValueFromVarName,
+  getErrorMessage,
+} from "../utils/helpers";
 import { renderModal } from "../ui/modal";
 import { withLoader } from "../ui/loader";
 import { behindContinuityPaywall } from "../ui/paywall";
@@ -500,26 +504,42 @@ $("#redeemContinuityHours")
   .on("click.redeemHours", function () {
     renderFormModal("redeemContinuityHours", {
       onSubmit: async ({ resendTemplate, data }) => {
-        const resendPayload = {
-          // Required by function
-          from: "TheBrand.Estate <jiro@thebrand.estate>",
-          customerEmail: auth.email,
-          internalTemplateId: "external-redeem-continuity-hours",
-          customerTemplateId: "external-redeem-continuity-hours",
+        try {
+          const resendPayload = {
+            // Required by function
+            from: "TheBrand.Estate <jiro@thebrand.estate>",
+            customerEmail: auth.email,
+            internalTemplateId: "external-redeem-continuity-hours",
+            customerTemplateId: "external-redeem-continuity-hours",
 
-          // Template variables for Resend template
-          templateVariables: {
-            Deadline: Number(data.deadline ?? 1),
-            Description:
-              data.description ?? "Omschrijving van werkzaamheden.",
-            Ontvanger: data.ontvanger ?? "Klant",
-            Title: data.title ?? "Titel van werkzaamheid",
-            resendTemplate,
-          },
-        };
+            // Template variables for Resend template
+            templateVariables: {
+              Deadline: Number(data.deadline ?? 1),
+              Description: data.description ?? "Geen omschrijving gegeven...",
+              Ontvanger: auth.name,
+              Title: data.title ?? "Geen titel gegeven",
+              resendTemplate,
+            },
+          };
 
-        const resendExecution = await sendResendEmail(resendPayload);
-        console.log("sendResendEmail response:", resendExecution);
+          const resendExecution = await sendResendEmail(resendPayload);
+          console.log("sendResendEmail response:", resendExecution);
+
+          if (resendExecution.ok === 200) {
+            renderToast(
+              "Verstuurd!",
+              `Er is een bevestiging verstuurd naar ${auth.mail}.`,
+              "positive",
+            );
+          }
+        } catch (err) {
+          console.error(err);
+          renderToast(
+            "Oeps!",
+            "Er is iets misgegaan met het versturen van het verzoek. Neem handmatig contact op.",
+            "negative",
+          );
+        }
       },
     });
   });
