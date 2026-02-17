@@ -20,7 +20,7 @@ import { initFormModal, renderFormModal } from "../ui/formModal";
 import FORM_MODALS from "../config/formModal";
 import { sendResendEmail } from "../appwrite/functions";
 
-await checkAuth();
+const auth = await checkAuth();
 const continuityAccess = await withLoader(checkContinuityAccess(false, false));
 if (!continuityAccess) {
   behindContinuityPaywall($("[data-action-card-variant='continuity-hours']"));
@@ -494,14 +494,32 @@ obituaryCard.off("click.toggleplayer").on("click.toggleplayer", function () {
 });
 
 // –— Redeem Continuity
-initFormModal(FORM_MODALS.redeemContinuityHours);
+initFormModal(FORM_MODALS);
 $("#redeemContinuityHours")
   .off("click.redeemHours")
   .on("click.redeemHours", function () {
     renderFormModal("redeemContinuityHours", {
       onSubmit: async ({ resendTemplate, data }) => {
-        // koppel hier Appwrite Messaging + Resend template
-        await sendResendEmail();
+        const resendPayload = {
+          // Required by function
+          from: "TheBrand.Estate <jiro@thebrand.estate>",
+          customerEmail: auth.email,
+          internalTemplateId: "external-redeem-continuity-hours",
+          customerTemplateId: "external-redeem-continuity-hours",
+
+          // Template variables for Resend template
+          templateVariables: {
+            Deadline: Number(data.deadline ?? 1),
+            Description:
+              data.description ?? "Omschrijving van werkzaamheden.",
+            Ontvanger: data.ontvanger ?? "Klant",
+            Title: data.title ?? "Titel van werkzaamheid",
+            resendTemplate,
+          },
+        };
+
+        const resendExecution = await sendResendEmail(resendPayload);
+        console.log("sendResendEmail response:", resendExecution);
       },
     });
   });

@@ -119,12 +119,15 @@ export async function getAllStripeProducts() {
   }
 }
 
-export async function sendResendEmail() {
+export async function sendResendEmail(payload = {}) {
   try {
+    console.log("Executing sendResendEmail...");
     const execution = await functions.createExecution(
       APPWRITE.functions.sendResendEmail,
+      JSON.stringify(payload),
       false,
     );
+    console.log("Executed sendResendEmail!");
 
     const responseData =
       execution.responseBody && JSON.parse(execution.responseBody);

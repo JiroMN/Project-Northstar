@@ -17,6 +17,8 @@ export const FORM_MODALS = {
         name: "deadline",
         placeholder: "Hoeveel tijdsdruk zit er achter? (1-10)",
         type: "number",
+        min: 1,
+        max: 10,
         required: true,
       },
       {
