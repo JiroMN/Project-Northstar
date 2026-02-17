@@ -16,6 +16,9 @@ import { daysUntil, getCssValueFromVarName } from "../utils/helpers";
 import { renderModal } from "../ui/modal";
 import { withLoader } from "../ui/loader";
 import { behindContinuityPaywall } from "../ui/paywall";
+import { initFormModal, renderFormModal } from "../ui/formModal";
+import FORM_MODALS from "../config/formModal";
+import { sendResendEmail } from "../appwrite/functions";
 
 await checkAuth();
 const continuityAccess = await withLoader(checkContinuityAccess(false, false));
@@ -489,3 +492,16 @@ obituaryCard.off("click.toggleplayer").on("click.toggleplayer", function () {
       );
   }
 });
+
+// –— Redeem Continuity
+initFormModal(FORM_MODALS.redeemContinuityHours);
+$("#redeemContinuityHours")
+  .off("click.redeemHours")
+  .on("click.redeemHours", function () {
+    renderFormModal("redeemContinuityHours", {
+      onSubmit: async ({ resendTemplate, data }) => {
+        // koppel hier Appwrite Messaging + Resend template
+        await sendResendEmail();
+      },
+    });
+  });

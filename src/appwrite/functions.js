@@ -118,3 +118,20 @@ export async function getAllStripeProducts() {
     throw err;
   }
 }
+
+export async function sendResendEmail() {
+  try {
+    const execution = await functions.createExecution(
+      APPWRITE.functions.sendResendEmail,
+      false,
+    );
+
+    const responseData =
+      execution.responseBody && JSON.parse(execution.responseBody);
+
+    return responseData;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}

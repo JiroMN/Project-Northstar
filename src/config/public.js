@@ -36,6 +36,7 @@ export const APPWRITE = {
     addCompany: "6980a1d00007b504bd1b",
     addUser: "6981ec6b001556993df5",
     removeUser: "6981ffe2000e07638e0b",
+    sendResendEmail: "69943fde000436c205b8",
   },
 
   databases: {
