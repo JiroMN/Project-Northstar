@@ -1,5 +1,6 @@
 import { applyTextBindings } from "../utils/dataBinding";
 import { FORM_MODALS } from "../config/formModal";
+import { setButtonState } from "../animations/global/buttons";
 
 const $container = $(".form-modal-container");
 const $backdrop = $(".form-modal-backdrop");
@@ -56,6 +57,7 @@ function createField(field) {
     name = "",
     placeholder = "",
     required = false,
+    readonly = false,
     min,
     max,
   } = field;
@@ -72,6 +74,13 @@ function createField(field) {
 
     if (required) {
       $textarea.attr("required", "required");
+    }
+    if (readonly) {
+      $textarea
+        .attr("readonly", "readonly")
+        .css("opacity", "0.6")
+        .css("cursor", "not-allowed")
+        .css("pointer-events", "none");
     }
 
     return $textarea;
@@ -95,6 +104,13 @@ function createField(field) {
 
   if (required) {
     $input.attr("required", "required");
+  }
+  if (readonly) {
+    $input
+      .attr("readonly", "readonly")
+      .css("opacity", "0.4")
+      .css("cursor", "not-allowed")
+      .css("pointer-events", "none");
   }
 
   return $input;
@@ -176,22 +192,32 @@ export function renderFormModal(entryKey, options = {}) {
 
   $(confirmButton).on("click.formModalConfirm", async function (e) {
     e.preventDefault();
+    if ($(this).attr("data-disable") === "true") return;
 
     if (!$form[0].checkValidity()) {
       $form[0].reportValidity();
       return;
     }
 
-    const data = gatherModalFormData($form);
-    closeFormModal();
+    try {
+      setButtonState($(this), "loading", false);
 
-    await onSubmit?.({
-      key: entryKey,
-      formId: cfg.formId,
-      resendTemplate: cfg.resendTemplate ?? "",
-      data,
-      config: cfg,
-    });
+      const data = gatherModalFormData($form);
+
+      await onSubmit?.({
+        key: entryKey,
+        formId: cfg.formId,
+        resendTemplate: cfg.resendTemplate ?? "",
+        data,
+        config: cfg,
+      });
+
+      closeFormModal();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setButtonState($(this), "enable", true);
+    }
   });
 
   $(cancelButton).on("click.formModalCancel", function (e) {

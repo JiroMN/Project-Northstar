@@ -507,7 +507,6 @@ $("#redeemContinuityHours")
         try {
           const resendPayload = {
             // Required by function
-            from: "TheBrand.Estate <jiro@thebrand.estate>",
             customerEmail: auth.email,
             internalTemplateId: "external-redeem-continuity-hours",
             customerTemplateId: "external-redeem-continuity-hours",
@@ -525,11 +524,18 @@ $("#redeemContinuityHours")
           const resendExecution = await sendResendEmail(resendPayload);
           console.log("sendResendEmail response:", resendExecution);
 
-          if (resendExecution.ok === 200) {
+          if (resendExecution?.ok) {
             renderToast(
               "Verstuurd!",
-              `Er is een bevestiging verstuurd naar ${auth.mail}.`,
+              `Er is een bevestiging verstuurd naar ${auth.email}.`,
               "positive",
+            );
+          } else {
+            renderToast(
+              "Oeps!",
+              resendExecution?.error ??
+                "Er is iets misgegaan met het versturen van het verzoek.",
+              "negative",
             );
           }
         } catch (err) {

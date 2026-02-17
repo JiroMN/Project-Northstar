@@ -3,13 +3,20 @@ import { getAllContinuityPackages, getClientData } from "../appwrite/db";
 import {
   createPortalSession,
   getAllStripeProducts,
+  sendResendEmail,
 } from "../appwrite/functions";
+import FORM_MODALS from "../config/formModal";
+import { initFormModal, renderFormModal } from "../ui/formModal";
 import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
-import { getErrorMessage, stripePriceToEuroFormat } from "../utils/helpers";
+import {
+  formatFullDate,
+  getErrorMessage,
+  stripePriceToEuroFormat,
+} from "../utils/helpers";
 
-await checkAuth();
+const auth = await checkAuth();
 const clientData = await getClientData();
 const continuityAccess = await withLoader(
   checkContinuityAccess(false, false, true),
@@ -22,11 +29,12 @@ const portalSession = await createPortalSession(
 );
 
 let currentlyActivePackage;
+const currentPeriodEnd = continuityAccess?.stripe?.currentPeriodEnd;
 
 const template = $("#offeringCardTemplate");
 
-// console.log(continuityAccess);
-// console.log(stripeProducts);
+console.log(continuityAccess);
+console.log(stripeProducts);
 
 function renderData() {
   try {
@@ -109,7 +117,7 @@ function renderData() {
     // Set button text values
     renderedOfferings.not(template).each((__, offeringsCard) => {
       const $card = $(offeringsCard);
-      const price = $card.attr("data-price-amount");
+      const price = Number($card.attr("data-price-amount"));
       const currentlyActivePackagePrice =
         continuityAccess && currentlyActivePackage
           ? stripePriceToEuroFormat(
@@ -117,22 +125,32 @@ function renderData() {
             )
           : null;
       let text = "Selecteer";
+      const isDowngrade =
+        currentlyActivePackagePrice !== null &&
+        price < currentlyActivePackagePrice;
+      const isUpgrade =
+        currentlyActivePackagePrice !== null &&
+        price > currentlyActivePackagePrice;
 
       if ($card.attr("data-current-package") === "true") {
         applyTextBindings($card, {
           action: "beheer",
         });
       } else {
-        if (price < currentlyActivePackagePrice) {
-          //   Check if offering is an upgrade or a downgrade based on value
+        if (isDowngrade) {
           text = "Downgrade";
-        } else if (price > currentlyActivePackagePrice) {
+        } else if (isUpgrade) {
           text = "Upgrade";
         }
         applyTextBindings($card, {
           action: text,
         });
       }
+
+      $card
+        .find(".package-offering-info-button-wrapper.primary")
+        .attr("data-is-downgrade", isDowngrade ? "true" : "false")
+        .attr("data-is-upgrade", isUpgrade ? "true" : "false");
     });
   } catch (err) {
     console.error(err);
@@ -141,3 +159,69 @@ function renderData() {
 }
 
 renderData();
+
+initFormModal(FORM_MODALS);
+
+$(".package-offering-info-button-wrapper")
+  .off("click.changePackage")
+  .on("click.changePackage", function () {
+    const $wrapper = $(this);
+    const isDowngrade = $wrapper.attr("data-is-downgrade") === "true";
+    const isUpgrade = $wrapper.attr("data-is-upgrade") === "true";
+    if (!isDowngrade && !isUpgrade) return;
+
+    const $card = $wrapper.closest(".package-offering");
+    const newPackageName = $card
+      .find("[data-bind='title']")
+      .first()
+      .text()
+      .trim();
+    const effectiveFrom = currentPeriodEnd
+      ? formatFullDate(currentPeriodEnd)
+      : "";
+    const allChangePackageInputs = FORM_MODALS.changeContinuityPackage.inputs;
+    FORM_MODALS.changeContinuityPackage.inputs = isDowngrade
+      ? allChangePackageInputs
+      : allChangePackageInputs.filter(
+          (field) => field.name !== "downgradeReason",
+        );
+
+    renderFormModal("changeContinuityPackage", {
+      heading: isDowngrade ? "Downgrade aanvragen" : "Upgrade aanvragen",
+      onSubmit: async ({ data }) => {
+        try {
+          const resendPayload = {
+            from: "Jiro Niedeveld | TheBrand.Estate <jiro@thebrand.estate>",
+            customerEmail: auth.email,
+            brandDirectorEmail: "jiro@thebrand.estate",
+            internalTemplateId: isDowngrade
+              ? "downgrade-continuity-package"
+              : "upgrade-continuity-package",
+            customerTemplateId: isDowngrade
+              ? "downgrade-continuity-package"
+              : "upgrade-continuity-package",
+            templateVariables: {
+              NewPackageName: data.newPackageName ?? "Naam van nieuw pakket",
+              StartDate: data.effectiveFrom ?? "00-00-0000",
+              DowngradeReason: data.downgradeReason ?? "Geen reden opgegeven.",
+              Ontvanger: auth.name,
+            },
+          };
+
+          const response = await sendResendEmail(resendPayload);
+          if (!response?.ok) {
+            throw new Error(response?.error ?? "Versturen is mislukt.");
+          }
+
+          renderToast("Gelukt!", "Aanvraag is verstuurd.", "positive");
+        } catch (err) {
+          console.error(err);
+          renderToast("Oeps!", getErrorMessage(err), "negative");
+        }
+      },
+      initialData: {
+        newPackageName: newPackageName,
+        effectiveFrom: effectiveFrom,
+      },
+    });
+  });

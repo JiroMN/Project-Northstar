@@ -29,6 +29,36 @@ export const FORM_MODALS = {
       },
     ],
   },
+  changeContinuityPackage: {
+    heading: "Wijzig continuity pakket",
+    body: "Bevestig je pakketwijziging. Je ontvangt een bevestiging per e-mail.",
+    cancelText: "Annuleer",
+    confirmText: "Verstuur",
+    resendTemplate: "change_continuity_package",
+    formId: "changeContinuityPackageForm",
+    inputs: [
+      {
+        name: "newPackageName",
+        placeholder: "Naam van nieuw pakket",
+        type: "text",
+        required: true,
+        readonly: true,
+      },
+      {
+        name: "effectiveFrom",
+        placeholder: "Ingang vanaf",
+        type: "text",
+        required: true,
+        readonly: true,
+      },
+      {
+        name: "downgradeReason",
+        placeholder: "Indien van toepassing, reden van downgrade.",
+        type: "textarea",
+        required: false,
+      },
+    ],
+  },
 };
 
 export default FORM_MODALS;
