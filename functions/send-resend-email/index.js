@@ -5,6 +5,7 @@ export default async ({ req, res, log }) => {
     const payload = req.bodyJson ?? {};
 
     const apiKey = process.env.RESEND_API_KEY;
+    log(apiKey);
     const from = payload.from;
     const brandDirectorEmail =
       payload.brandDirectorEmail ?? "jiro@thebrand.estate";
