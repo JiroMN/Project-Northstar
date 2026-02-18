@@ -2,8 +2,8 @@
 export function setButtonState($btn, state, isClickable) {
   // Timeline used only for disabled/loading visual feedback
   const tl = gsap.timeline({ paused: true }).to($btn, {
-    autoAlpha: 0.5,
-    duration: 0.75,
+    autoAlpha: 0.75,
+    duration: 0.5,
     overwrite: "auto",
   });
 
@@ -43,13 +43,11 @@ export function setButtonState($btn, state, isClickable) {
 // Button Animations
 const NS = ".btnHover";
 
-$(".button, .button-md, .icon-button").each(function () {
-  const $btn = $(this);
+$(document)
+  .off(`mouseenter${NS}`, ".button, .button-md, .icon-button")
+  .on(`mouseenter${NS}`, ".button, .button-md, .icon-button", function () {
+    const $btn = $(this);
 
-  // Prevent duplicate bindings if this file runs more than once
-  $btn.off(NS);
-
-  $btn.on(`mouseenter${NS}`, function () {
     // Skip hover animation when disabled/loading
     if ($btn.attr("data-disabled") === "true") return;
 
@@ -61,7 +59,11 @@ $(".button, .button-md, .icon-button").each(function () {
     });
   });
 
-  $btn.on(`mouseleave${NS}`, function () {
+$(document)
+  .off(`mouseleave${NS}`, ".button, .button-md, .icon-button")
+  .on(`mouseleave${NS}`, ".button, .button-md, .icon-button", function () {
+    const $btn = $(this);
+
     // If disabled/loading, keep the disabled alpha (setButtonState handles it)
     if ($btn.attr("data-disabled") === "true") return;
 
@@ -72,7 +74,6 @@ $(".button, .button-md, .icon-button").each(function () {
       overwrite: "auto",
     });
   });
-});
 
 // Page Tabs
 $(document)
