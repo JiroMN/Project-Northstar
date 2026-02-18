@@ -11,6 +11,7 @@ import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import {
+  convertStripeStatus,
   formatFullDate,
   getErrorMessage,
   stripePriceToEuroFormat,
@@ -32,6 +33,9 @@ let currentlyActivePackage;
 const currentPeriodEnd = continuityAccess?.stripe?.currentPeriodEnd;
 
 const template = $("#offeringCardTemplate");
+const statusBadge = ".package-offering-status-badge";
+
+gsap.set(statusBadge, { autoAlpha: 0 });
 
 console.log(continuityAccess);
 console.log(stripeProducts);
@@ -110,6 +114,27 @@ function renderData() {
           });
           correspondingOfferingCard.attr("data-current-package", "true");
           currentlyActivePackage = product;
+
+          // Show Subscription Status
+          correspondingOfferingCard.css(
+            "z-index",
+            renderedOfferings.length + 10,
+          );
+          const statusBadge = correspondingOfferingCard.find(
+            ".package-offering-status-badge",
+          );
+          const { string, badge } = convertStripeStatus(
+            continuityAccess.stripe.status,
+          );
+
+          applyTextBindings(statusBadge, {
+            status: string,
+          });
+
+          gsap.set(statusBadge, { autoAlpha: 1 });
+          statusBadge
+            .css("backgroundColor", badge.background)
+            .css("color", badge.foreground);
         }
       }
     });

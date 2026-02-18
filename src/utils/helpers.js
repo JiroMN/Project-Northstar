@@ -356,3 +356,83 @@ export function formatBytes(bytes, decimals = 2) {
 export function stripePriceToEuroFormat(unitAmount) {
   return unitAmount / 100;
 }
+
+export function convertStripeStatus(stripeStatus) {
+  const colors = {
+    positive: {
+      background: getCssValueFromVarName(
+        "var(--_all-colors---service-color--aesthetics--background)",
+      ),
+      foreground: getCssValueFromVarName(
+        "var(--_all-colors---service-color--aesthetics--foreground)",
+      ),
+    },
+    caution: {
+      background: getCssValueFromVarName(
+        "var(--_all-colors---service-color--strategy--background)",
+      ),
+      foreground: getCssValueFromVarName(
+        "var(--_all-colors---service-color--strategy--foreground)",
+      ),
+    },
+    negative: {
+      background: getCssValueFromVarName(
+        "var(--_all-colors---feedback--negative--background)",
+      ),
+      foreground: getCssValueFromVarName(
+        "var(--_all-colors---feedback--negative--foreground)",
+      ),
+    },
+    neutral: {
+      background: getCssValueFromVarName(
+        "var(--_all-colors---light--backgroundtones--50)",
+      ),
+      foreground: getCssValueFromVarName(
+        "var(--_all-colors---light--foreground)",
+      ),
+    },
+  };
+  let string = stripeStatus;
+  let badge = "neutral";
+
+  switch (stripeStatus) {
+    case "incomplete":
+      string = "Onvolledig";
+      badge = "caution";
+      break;
+    case "incomplete_expired":
+      string = "Onvolledig & Verlopen";
+      badge = "negative";
+      break;
+    case "trialing":
+      string = "Proefperiode";
+      badge = "positive";
+      break;
+    case "active":
+      string = "Actief";
+      badge = "positive";
+      break;
+    case "past_due":
+      string = "Achterstallig";
+      badge = "caution";
+      break;
+    case "canceled":
+      string = "Geannuleerd";
+      badge = "neutral";
+      break;
+    case "unpaid":
+      string = "Onbetaald";
+      badge = "caution";
+      break;
+    case "paused":
+      string = "Gepauzeerd";
+      badge = "neutral";
+      break;
+    default:
+      string = stripeStatus;
+      badge = "neutral";
+      break;
+  }
+
+  return { string, badge: colors[badge] };
+}
