@@ -23,7 +23,7 @@ export default async ({ req, res, log }) => {
       customer: customerId,
       status: "all",
       limit: 20,
-      expand: ["data.items.data.price.product"],
+      expand: ["data.items.data.price"],
     });
 
     if (!subscriptions?.data?.length) {
@@ -65,14 +65,14 @@ export default async ({ req, res, log }) => {
     }
 
     const firstItem = sub.items.data[0];
-    const product = firstItem.price?.product;
-
-    if (!product || typeof product === "string") {
+    const productId = firstItem.price?.product;
+    if (!productId || typeof productId !== "string") {
       return res.json({
         ok: false,
-        error: "Subscription product could not be expanded.",
+        error: "Subscription product id is missing.",
       });
     }
+    const product = await stripe.products.retrieve(productId);
 
     return res.json({
       ok: true,
