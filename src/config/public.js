@@ -25,6 +25,21 @@ export const CONFIG = {
   baseUrl: "https://thebrand-book.webflow.io",
 };
 
+export const PRODUCTS = {
+  "Continuity Essential": {
+    productId: "prod_Tq5WSr2r5r2zbn",
+    paymentLink: "https://buy.stripe.com/test_14AaEZ8Tc39P3i8ajw6Ri00",
+  },
+  "Continuity Core": {
+    productId: "prod_Tq5Y8XAlLPBPyP",
+    paymentLink: "https://buy.stripe.com/test_eVq6oJ1qK6m1cSI0IW6Ri01",
+  },
+  "Continuity Plus": {
+    productId: "prod_Tq5ZCevEBTzBLE",
+    paymentLink: "https://buy.stripe.com/test_bJe28t7P811H2e4fDQ6Ri02",
+  },
+};
+
 export const APPWRITE = {
   endpoint: "https://fra.cloud.appwrite.io/v1",
   projectId: "6940136600382a052352",
@@ -45,12 +60,6 @@ export const APPWRITE = {
       collections: {
         timelogs: {
           id: "continuity_time_logs",
-        },
-        subscriptions: {
-          id: "client_continuity_subscriptions",
-        },
-        packages: {
-          id: "continuity_packages",
         },
       },
     },

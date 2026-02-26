@@ -4,11 +4,11 @@ import APPWRITE from "../config/public";
 
 export const functions = new Functions(client);
 
-export async function getSubscriptionFromStripe(subscriptionId) {
+export async function getSubscriptionFromStripe(customerId) {
   try {
     const execution = await functions.createExecution(
       APPWRITE.functions.getSubscription,
-      JSON.stringify({ subscriptionId: subscriptionId }),
+      JSON.stringify({ customerId: customerId }),
       false,
     );
 

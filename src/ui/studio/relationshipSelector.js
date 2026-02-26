@@ -32,6 +32,12 @@ relationshipSelector.each(async (index, relationshipSelector) => {
   // Relationregistry
   const relKey = $relationshipSelector.attr("data-rel-key");
   const relRegistryItem = RELATIONSHIPSELECTORS[relKey];
+  if (!relRegistryItem) {
+    console.warn(
+      `[relationshipSelector] No relation config found for key "${relKey}". Skipping.`,
+    );
+    return;
+  }
   const boundToClient = relRegistryItem.boundToClient;
   // ClientData
   let selectedClientId = "";

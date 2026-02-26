@@ -1,22 +1,15 @@
 import { checkAuth, checkContinuityAccess } from "../appwrite/auth";
-import {
-  getClientData,
-  getContinuityPackageData,
-  getContinuityTimeInfo,
-  getTimeLogs,
-} from "../appwrite/db";
-import { withLoader } from "../ui/loader";
+import { getContinuityTimeInfo } from "../appwrite/db";
 import { applyTextBindings } from "../utils/dataBinding";
 import {
   daysUntil,
-  formatFullDate,
   formatFullDayDate,
   getCssValueFromVarName,
   isBetweenDates,
 } from "../utils/helpers";
 
 await checkAuth();
-const continuityAccess = await checkContinuityAccess(true, false);
+await checkContinuityAccess(true, false);
 
 let timelogDocs;
 let periodStart;
@@ -25,13 +18,9 @@ let periodEnd;
 // Hero
 async function processContinuityInfo() {
   try {
-    const response = await getClientData();
-    const data = response.client.documents[0];
     const continuityTimeInfo = await getContinuityTimeInfo();
     const stripeData = continuityTimeInfo.continuityPackageRes.stripe;
-    const packageData =
-      continuityTimeInfo.continuityPackageRes.appwrite.documents[0]
-        .continuityPackage;
+    const packageData = continuityTimeInfo.continuityPackageRes.package;
 
     const spentHours = continuityTimeInfo.spentHours;
     const spentConsultingHours = continuityTimeInfo.spentConsultingHours;

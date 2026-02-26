@@ -1,11 +1,12 @@
 import { checkAuth, checkContinuityAccess } from "../appwrite/auth";
-import { getAllContinuityPackages, getClientData } from "../appwrite/db";
+import { getClientData } from "../appwrite/db";
 import {
   createPortalSession,
   getAllStripeProducts,
   sendResendEmail,
 } from "../appwrite/functions";
 import FORM_MODALS from "../config/formModal";
+import { PRODUCTS } from "../config/public";
 import { initFormModal, renderFormModal } from "../ui/formModal";
 import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
@@ -23,7 +24,6 @@ const continuityAccess = await withLoader(
   checkContinuityAccess(false, false, true),
 );
 const stripeProducts = await withLoader(getAllStripeProducts());
-const allPackages = await getAllContinuityPackages();
 const portalSession = await createPortalSession(
   clientData.client.documents[0].stripe_customer_id,
   window.location.href,
@@ -46,63 +46,53 @@ function renderData() {
       ? continuityAccess.stripe.product
       : null;
 
-    // Render all packages into HTML based on Appwrite database response
-    $(allPackages.documents).each((__, pkg) => {
+    // Render all packages into HTML directly from Stripe products
+    $(stripeProducts.products ?? []).each((__, product) => {
+      const totalHours = Number(product?.metadata?.total_hours ?? 0);
+      const reservedConsultingHours = Number(
+        product?.metadata?.reserved_consulting_hours ?? 0,
+      );
+      const freeHours = totalHours - reservedConsultingHours;
+      const productPrice = stripePriceToEuroFormat(
+        product?.default_price?.unit_amount ?? 0,
+      );
+      const effectiveHourlyRate =
+        totalHours > 0 ? productPrice / totalHours : 0;
+
       const clone = template.clone(true);
-      clone.attr("id", "").attr("stripe-product-id", pkg.stripe_product_id);
+      clone
+        .attr("id", "")
+        .attr("stripe-product-id", product.id)
+        .attr("data-price-amount", productPrice)
+        .css("display", "flex");
 
       clone.appendTo(".package-offerings-container");
 
-      const freeHours = pkg.total_hours - pkg.reserved_consulting_hours;
-
       applyTextBindings(clone, {
-        "total-hours": pkg.total_hours,
-        "reserved-consulting": pkg.reserved_consulting_hours,
-        "free-hours": freeHours,
-      });
-    });
-
-    const renderedOfferings = $(".package-offering");
-
-    $(stripeProducts.products).each((__, product) => {
-      const correspondingOfferingCard = renderedOfferings.filter((__, card) => {
-        return $(card).attr("stripe-product-id") === product.id;
-      });
-      const productPrice = stripePriceToEuroFormat(
-        product.default_price.unit_amount,
-      );
-      const effectiveHourlyRate =
-        productPrice /
-        parseInt(
-          correspondingOfferingCard.find("[data-bind='total-hours']").text(),
-        );
-
-      //   Only show card when there is a matching Stripe Product & Create price attribute
-      correspondingOfferingCard
-        .css("display", "flex")
-        .attr("data-price-amount", productPrice);
-
-      applyTextBindings(correspondingOfferingCard, {
-        title: product.name,
-        description: product.description,
+        title: product?.name ?? "",
+        description: product?.description ?? "",
         price: productPrice,
-        "recurring-interval": product.default_price.recurring.interval_count,
+        "recurring-interval":
+          product?.default_price?.recurring?.interval_count ?? 1,
         "eur-per-hour": effectiveHourlyRate,
+        "total-hours": totalHours,
+        "reserved-consulting": reservedConsultingHours,
+        "free-hours": freeHours,
       });
 
       // Set product image
-      $(correspondingOfferingCard)
+      $(clone)
         .find(".package-offering-icon")
-        .css("background-image", `url(${product.images[0]})`);
+        .css("background-image", `url(${product?.images?.[0] ?? ""})`);
 
       // Check which package is active on account and handle button styling
       if (continuityAccess) {
-        if (currentStripeProduct.id.id == product.id) {
-          const button = correspondingOfferingCard.find(".button");
-          const buttonPrimary = correspondingOfferingCard.find(
+        if (currentStripeProduct?.id === product.id) {
+          const button = clone.find(".button");
+          const buttonPrimary = clone.find(
             ".package-offering-info-button-wrapper.primary",
           );
-          const buttonSecondary = correspondingOfferingCard.find(
+          const buttonSecondary = clone.find(
             ".package-offering-info-button-wrapper.secondary",
           );
 
@@ -112,17 +102,12 @@ function renderData() {
           button.on("click", function () {
             window.location.href = portalSession.session.url;
           });
-          correspondingOfferingCard.attr("data-current-package", "true");
+          clone.attr("data-current-package", "true");
           currentlyActivePackage = product;
 
           // Show Subscription Status
-          correspondingOfferingCard.css(
-            "z-index",
-            renderedOfferings.length + 10,
-          );
-          const statusBadge = correspondingOfferingCard.find(
-            ".package-offering-status-badge",
-          );
+          clone.css("z-index", (stripeProducts.products?.length ?? 0) + 10);
+          const statusBadge = clone.find(".package-offering-status-badge");
           const { string, badge } = convertStripeStatus(
             continuityAccess.stripe.status,
           );
@@ -139,6 +124,8 @@ function renderData() {
       }
     });
 
+    const renderedOfferings = $(".package-offering");
+
     // Set button text values
     renderedOfferings.not(template).each((__, offeringsCard) => {
       const $card = $(offeringsCard);
@@ -146,7 +133,7 @@ function renderData() {
       const currentlyActivePackagePrice =
         continuityAccess && currentlyActivePackage
           ? stripePriceToEuroFormat(
-              currentlyActivePackage.default_price.unit_amount,
+              currentlyActivePackage?.default_price?.unit_amount ?? 0,
             )
           : null;
       let text = "Selecteer";
@@ -201,52 +188,56 @@ $(".package-offering-info-button-wrapper")
       .first()
       .text()
       .trim();
-    const effectiveFrom = currentPeriodEnd
-      ? formatFullDate(currentPeriodEnd)
-      : "";
-    const allChangePackageInputs = FORM_MODALS.changeContinuityPackage.inputs;
-    FORM_MODALS.changeContinuityPackage.inputs = isDowngrade
-      ? allChangePackageInputs
-      : allChangePackageInputs.filter(
-          (field) => field.name !== "downgradeReason",
-        );
+    const productEntry = PRODUCTS[newPackageName];
+    console.log(productEntry);
 
-    renderFormModal("changeContinuityPackage", {
-      heading: isDowngrade ? "Downgrade aanvragen" : "Upgrade aanvragen",
-      onSubmit: async ({ data }) => {
-        try {
-          const resendPayload = {
-            from: "Jiro Niedeveld | TheBrand.Estate <jiro@thebrand.estate>",
-            customerEmail: auth.email,
-            brandDirectorEmail: "jiro@thebrand.estate",
-            internalTemplateId: isDowngrade
-              ? "downgrade-continuity-package"
-              : "upgrade-continuity-package",
-            customerTemplateId: isDowngrade
-              ? "downgrade-continuity-package"
-              : "upgrade-continuity-package",
-            templateVariables: {
-              NewPackageName: data.newPackageName ?? "Naam van nieuw pakket",
-              StartDate: data.effectiveFrom ?? "00-00-0000",
-              DowngradeReason: data.downgradeReason ?? "Geen reden opgegeven.",
-              Ontvanger: auth.name,
-            },
-          };
+    // ———  old formModal Logic ———
+    // const effectiveFrom = currentPeriodEnd
+    //   ? formatFullDate(currentPeriodEnd)
+    //   : "";
+    // const allChangePackageInputs = FORM_MODALS.changeContinuityPackage.inputs;
+    // FORM_MODALS.changeContinuityPackage.inputs = isDowngrade
+    //   ? allChangePackageInputs
+    //   : allChangePackageInputs.filter(
+    //       (field) => field.name !== "downgradeReason",
+    //     );
 
-          const response = await sendResendEmail(resendPayload);
-          if (!response?.ok) {
-            throw new Error(response?.error ?? "Versturen is mislukt.");
-          }
+    // renderFormModal("changeContinuityPackage", {
+    //   heading: isDowngrade ? "Downgrade aanvragen" : "Upgrade aanvragen",
+    //   onSubmit: async ({ data }) => {
+    //     try {
+    //       const resendPayload = {
+    //         from: "Jiro Niedeveld | TheBrand.Estate <jiro@thebrand.estate>",
+    //         customerEmail: auth.email,
+    //         brandDirectorEmail: "jiro@thebrand.estate",
+    //         internalTemplateId: isDowngrade
+    //           ? "downgrade-continuity-package"
+    //           : "upgrade-continuity-package",
+    //         customerTemplateId: isDowngrade
+    //           ? "downgrade-continuity-package"
+    //           : "upgrade-continuity-package",
+    //         templateVariables: {
+    //           NewPackageName: data.newPackageName ?? "Naam van nieuw pakket",
+    //           StartDate: data.effectiveFrom ?? "00-00-0000",
+    //           DowngradeReason: data.downgradeReason ?? "Geen reden opgegeven.",
+    //           Ontvanger: auth.name,
+    //         },
+    //       };
 
-          renderToast("Gelukt!", "Aanvraag is verstuurd.", "positive");
-        } catch (err) {
-          console.error(err);
-          renderToast("Oeps!", getErrorMessage(err), "negative");
-        }
-      },
-      initialData: {
-        newPackageName: newPackageName,
-        effectiveFrom: effectiveFrom,
-      },
-    });
+    //       const response = await sendResendEmail(resendPayload);
+    //       if (!response?.ok) {
+    //         throw new Error(response?.error ?? "Versturen is mislukt.");
+    //       }
+
+    //       renderToast("Gelukt!", "Aanvraag is verstuurd.", "positive");
+    //     } catch (err) {
+    //       console.error(err);
+    //       renderToast("Oeps!", getErrorMessage(err), "negative");
+    //     }
+    //   },
+    //   initialData: {
+    //     newPackageName: newPackageName,
+    //     effectiveFrom: effectiveFrom,
+    //   },
+    // });
   });

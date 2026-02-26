@@ -4,8 +4,6 @@ import { CONFIG, APPWRITE } from "../config/public";
 import { getCollection, getContinuityPackageData } from "./db";
 import { renderToast } from "../ui/toast";
 import { getErrorMessage } from "../utils/helpers";
-import { getSubscriptionFromStripe } from "./functions";
-import { getContainerUtilityClass } from "@mui/joy";
 
 export async function checkAuth() {
   try {

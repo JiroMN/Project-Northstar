@@ -170,34 +170,46 @@ export async function getAllClients() {
 // Continuity
 export async function getContinuityPackageData() {
   try {
-    const subsRes = await getCollection(
-      APPWRITE.databases.continuity.id,
-      APPWRITE.databases.continuity.collections.subscriptions.id,
-      [
-        Query.equal("client_id", await getClientId()),
-        Query.select(["*", "continuityPackage.*"]),
-      ],
-    );
+    const clientData = await getClientData();
+    const stripeCustomerId = clientData?.client?.documents?.[0]?.stripe_customer_id;
+    if (!stripeCustomerId) {
+      throw { message: "No stripe_customer_id found for this client." };
+    }
 
-    const stripe = await getSubscriptionFromStripe(
-      subsRes?.documents[0]?.stripe_subscription_id,
-    );
+    const stripeResponse = await getSubscriptionFromStripe(stripeCustomerId);
+    if (!stripeResponse?.ok) {
+      throw { message: stripeResponse?.error ?? "Failed to fetch subscription." };
+    }
+    if (!stripeResponse?.subscription) {
+      throw { message: "No Stripe subscription found for this customer." };
+    }
 
-    return { appwrite: subsRes, stripe: stripe.subscription };
+    const stripeSubscription = stripeResponse.subscription;
+    const product = stripeSubscription?.product ?? {};
+    const metadata = product?.metadata ?? {};
+
+    const packageData = {
+      name: product?.name ?? "",
+      description: product?.description ?? "",
+      stripe_product_id: product?.id ?? "",
+      total_hours: Number(metadata.total_hours ?? 0),
+      reserved_consulting_hours: Number(
+        metadata.reserved_consulting_hours ?? 0,
+      ),
+    };
+
+    return { stripe: stripeSubscription, package: packageData };
   } catch (err) {
     console.error(err);
     throw err;
   }
 }
-export async function getTimeLogs(includeSub = false) {
+export async function getTimeLogs() {
   try {
-    let queries = [
+    const queries = [
       Query.equal("client_id", await getClientId()),
       Query.limit(9999),
     ];
-    if (includeSub) {
-      queries.push(Query.select(["*", "clientContinuitySubscriptions.*"]));
-    }
 
     const subsRes = await getCollection(
       APPWRITE.databases.continuity.id,
@@ -217,12 +229,9 @@ export async function getContinuityTimeInfo() {
     // Fetch raw data
     const timelogs = await getTimeLogs();
     const continuityPackageRes = await getContinuityPackageData();
-    const subscriptionDbRes = continuityPackageRes.appwrite;
     const subscriptionStripeRes = continuityPackageRes.stripe;
 
-    // Shortcut (geen extra call)
-    const packageData =
-      subscriptionDbRes?.documents?.[0]?.continuityPackage ?? null;
+    const packageData = continuityPackageRes.package ?? null;
 
     let spentHours = 0;
     let spentConsultingHours = 0;
@@ -270,18 +279,6 @@ export async function getContinuityTimeInfo() {
     };
   } catch (err) {
     console.error(err);
-    throw err;
-  }
-}
-export async function getAllContinuityPackages() {
-  try {
-    const response = await getCollection(
-      APPWRITE.databases.continuity.id,
-      APPWRITE.databases.continuity.collections.packages.id,
-    );
-
-    return response;
-  } catch (err) {
     throw err;
   }
 }

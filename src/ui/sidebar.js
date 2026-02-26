@@ -185,16 +185,14 @@ async function bindDataToInfoCards() {
       data.stripe_customer_id,
       window.location.href,
     );
-    const dbSubData = continuityAccess
-      ? continuityAccess.appwrite.documents[0]
-      : null;
+    const packageData = continuityAccess ? continuityAccess.package : null;
     const stripeSubData = continuityAccess ? continuityAccess.stripe : null;
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
       "client-info-partner-since": formatShortDate(data.collab_start),
       "client-info-continuity-package":
-        continuityAccess && dbSubData.continuityPackage.name,
+        continuityAccess && packageData.name,
       "client-info-billing-period-end":
         continuityAccess && formatShortDate(stripeSubData.currentPeriodEnd),
     });

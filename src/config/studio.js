@@ -192,15 +192,6 @@ export const WRITE_CONFIG = {
     },
   },
   continuity: {
-    subscriptionsForm: {
-      collectionId: APPWRITE.databases.continuity.collections.subscriptions.id,
-      initialDataKey: "subscriptionsResponse",
-      mapToDb: (data, selectedClientId) => ({
-        client_id: selectedClientId,
-        continuityPackage: parseRelationInput(data.subscriptions, true),
-        stripe_subscription_id: data.stripeSubscriptionId,
-      }),
-    },
     timelogsForm: {
       collectionId: APPWRITE.databases.continuity.collections.timelogs.id,
       initialDataKey: "timelogsResponse",

@@ -33,23 +33,13 @@ const writeCfg = WRITE_CONFIG.continuity;
 
 async function gatherContinuityData(clientId) {
   try {
-    const subscriptionsResponse = await getCollection(
-      APPWRITE.databases.continuity.id,
-      APPWRITE.databases.continuity.collections.subscriptions.id,
-      [
-        Query.equal("client_id", clientId),
-        Query.orderDesc("$updatedAt"),
-        Query.select(["*", "continuityPackage.*"]),
-      ],
-    );
-
     const timelogsResponse = await getCollection(
       APPWRITE.databases.continuity.id,
       APPWRITE.databases.continuity.collections.timelogs.id,
       [Query.equal("client_id", clientId), Query.orderDesc("$updatedAt")],
     );
 
-    return { subscriptionsResponse, timelogsResponse };
+    return { timelogsResponse };
   } catch (err) {
     console.error(err);
     renderToast(
@@ -90,9 +80,6 @@ onPreviewItemEdit((toBeEditedItem) => {
 
 function setInitialData(data, formId) {
   let pairs = {
-    subscriptionsForm: {
-      subscriptions: "",
-    },
     timelogsForm: {
       timelogTitle: "",
       timelogDescription: "",
@@ -105,12 +92,6 @@ function setInitialData(data, formId) {
 
   if (data) {
     switch (formId) {
-      case "subscriptionsForm":
-        pairs.subscriptionsForm = {
-          subscriptions: data.continuityPackage?.$id ?? "",
-          subscriptionId: data.stripe_subscription_id,
-        };
-        break;
       case "timelogsForm":
         pairs.timelogsForm = {
           timelogTitle: data.title,
@@ -151,6 +132,14 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
         setButtonState($(this), "loading", false);
 
         const relatedForm = $(this).attr("data-related-form");
+        if (relatedForm !== "timelogsForm") {
+          renderToast(
+            "Niet beschikbaar",
+            "Abonnementen en pakketten worden volledig via Stripe beheerd.",
+            "announcement",
+          );
+          return;
+        }
         const form = $(`#${relatedForm}`);
         const isEditing = form.attr("data-is-editing");
         submittedData = gatherFormData(form);
@@ -172,19 +161,6 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
             ),
           });
         } else {
-          if (
-            relatedForm === "subscriptionsForm" &&
-            initialData.subscriptionsResponse.total > 0
-          ) {
-            renderToast(
-              "Onuitvoerbare actie!",
-              "Verwijder eerst het huidige abonnement voordat je een nieuwe toevoegt.",
-              "warning",
-              3500,
-            );
-            return;
-          }
-
           response = await createDocument({
             databaseId: APPWRITE.databases.continuity.id,
             collectionId: writeCfg[relatedForm].collectionId,
@@ -224,18 +200,20 @@ showDataBtn.off("click.showData").on("click.showData", function () {
   }
 
   const relatedForm = $(this).attr("data-related-form");
+  if (relatedForm !== "timelogsForm") {
+    renderToast(
+      "Niet beschikbaar",
+      "Abonnementen en pakketten worden volledig via Stripe beheerd.",
+      "announcement",
+    );
+    return;
+  }
   let sheetTitle;
   let labelKeys;
   let secondaryLabelKeys;
   let canEdit = true;
 
   switch (relatedForm) {
-    case "subscriptionsForm":
-      sheetTitle = "Abonnement";
-      labelKeys = [{ relation: "continuityPackage", key: "name" }];
-      secondaryLabelKeys = "stripe_subscription_id";
-      canEdit = false;
-      break;
     case "timelogsForm":
       sheetTitle = "Time Logs";
       labelKeys = ["title"];
@@ -258,3 +236,9 @@ resetBtn.each((__, btn) => {
   const $btn = $(btn);
   $btn.remove();
 });
+
+// Deprecated in favor of Stripe source of truth for products/subscriptions
+$("[data-related-form='subscriptionsForm']")
+  .closest(".studio-card")
+  .remove();
+$("#subscriptionsForm").remove();

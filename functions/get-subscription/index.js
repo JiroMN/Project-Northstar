@@ -10,25 +10,86 @@ function stripeTimestampToISO(timestamp) {
 
 export default async ({ req, res, log }) => {
   try {
-    const subId = req.bodyJson.subscriptionId;
-    log("Looking for: " + subId);
-    const sub = await stripe.subscriptions.retrieve(subId, {
-      expand: ["items.data.price.product"],
+    const customerId = req.bodyJson.customerId;
+    if (!customerId) {
+      return res.json({
+        ok: false,
+        error: "Missing customerId.",
+      });
+    }
+
+    log("Looking for customer subscriptions: " + customerId);
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 20,
+      expand: ["data.items.data.price.product"],
     });
+
+    if (!subscriptions?.data?.length) {
+      return res.json({
+        ok: true,
+        subscription: null,
+      });
+    }
+
+    const statusPriority = [
+      "active",
+      "trialing",
+      "past_due",
+      "unpaid",
+      "incomplete",
+      "paused",
+      "canceled",
+      "incomplete_expired",
+    ];
+
+    const sub = subscriptions.data.sort((a, b) => {
+      const aPriority = statusPriority.indexOf(a.status);
+      const bPriority = statusPriority.indexOf(b.status);
+      const safeAPriority = aPriority === -1 ? 999 : aPriority;
+      const safeBPriority = bPriority === -1 ? 999 : bPriority;
+
+      if (safeAPriority !== safeBPriority) {
+        return safeAPriority - safeBPriority;
+      }
+
+      return (b.created ?? 0) - (a.created ?? 0);
+    })[0];
+
+    if (!sub?.items?.data?.length) {
+      return res.json({
+        ok: false,
+        error: "Subscription has no items.",
+      });
+    }
+
+    const firstItem = sub.items.data[0];
+    const product = firstItem.price?.product;
+
+    if (!product || typeof product === "string") {
+      return res.json({
+        ok: false,
+        error: "Subscription product could not be expanded.",
+      });
+    }
 
     return res.json({
       ok: true,
       subscription: {
         id: sub.id,
+        customerId: customerId,
         status: sub.status,
         currentPeriodStart: stripeTimestampToISO(sub.current_period_start),
         currentPeriodEnd: stripeTimestampToISO(sub.current_period_end),
         billingCycleAnchor: stripeTimestampToISO(sub.billing_cycle_anchor),
-        priceId: sub.items.data[0].price.id,
+        priceId: firstItem.price?.id ?? null,
         product: {
-          id: sub.items.data[0].price.product,
-          name: sub.items.data[0].price.product.name,
-          images: sub.items.data[0].price.product.images,
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          images: product.images ?? [],
+          metadata: product.metadata ?? {},
         },
       },
     });
