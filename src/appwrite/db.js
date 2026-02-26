@@ -181,7 +181,7 @@ export async function getContinuityPackageData() {
       throw { message: stripeResponse?.error ?? "Failed to fetch subscription." };
     }
     if (!stripeResponse?.subscription) {
-      throw { message: "No Stripe subscription found for this customer." };
+      return { stripe: null, package: null };
     }
 
     const stripeSubscription = stripeResponse.subscription;

@@ -3,22 +3,20 @@ import { getClientData } from "../appwrite/db";
 import {
   createPortalSession,
   getAllStripeProducts,
-  sendResendEmail,
 } from "../appwrite/functions";
 import FORM_MODALS from "../config/formModal";
 import { PRODUCTS } from "../config/public";
-import { initFormModal, renderFormModal } from "../ui/formModal";
+import { initFormModal } from "../ui/formModal";
 import { withLoader } from "../ui/loader";
 import { renderToast } from "../ui/toast";
 import { applyTextBindings } from "../utils/dataBinding";
 import {
   convertStripeStatus,
-  formatFullDate,
   getErrorMessage,
   stripePriceToEuroFormat,
 } from "../utils/helpers";
 
-const auth = await checkAuth();
+await checkAuth();
 const clientData = await getClientData();
 const continuityAccess = await withLoader(
   checkContinuityAccess(false, false, true),
@@ -30,7 +28,6 @@ const portalSession = await createPortalSession(
 );
 
 let currentlyActivePackage;
-const currentPeriodEnd = continuityAccess?.stripe?.currentPeriodEnd;
 
 const template = $("#offeringCardTemplate");
 const statusBadge = ".package-offering-status-badge";
@@ -42,12 +39,16 @@ console.log(stripeProducts);
 
 function renderData() {
   try {
-    const currentStripeProduct = continuityAccess
-      ? continuityAccess.stripe.product
-      : null;
+    const currentStripeProduct = continuityAccess?.stripe?.product ?? null;
+    const currentStripeStatus = continuityAccess?.status ?? null;
+    const sortedProducts = [...(stripeProducts.products ?? [])].sort(
+      (a, b) =>
+        Number(a?.default_price?.unit_amount ?? 0) -
+        Number(b?.default_price?.unit_amount ?? 0),
+    );
 
     // Render all packages into HTML directly from Stripe products
-    $(stripeProducts.products ?? []).each((__, product) => {
+    $(sortedProducts).each((__, product) => {
       const totalHours = Number(product?.metadata?.total_hours ?? 0);
       const reservedConsultingHours = Number(
         product?.metadata?.reserved_consulting_hours ?? 0,
@@ -86,32 +87,25 @@ function renderData() {
         .css("background-image", `url(${product?.images?.[0] ?? ""})`);
 
       // Check which package is active on account and handle button styling
-      if (continuityAccess) {
-        if (currentStripeProduct?.id === product.id) {
-          const button = clone.find(".button");
-          const buttonPrimary = clone.find(
-            ".package-offering-info-button-wrapper.primary",
-          );
-          const buttonSecondary = clone.find(
-            ".package-offering-info-button-wrapper.secondary",
-          );
+      if (currentStripeProduct?.id === product.id) {
+        const buttonPrimary = clone.find(
+          ".package-offering-info-button-wrapper.primary",
+        );
+        const buttonSecondary = clone.find(
+          ".package-offering-info-button-wrapper.secondary",
+        );
 
-          buttonPrimary.hide();
-          buttonSecondary.show();
+        buttonPrimary.hide();
+        buttonSecondary.show();
 
-          button.on("click", function () {
-            window.location.href = portalSession.session.url;
-          });
-          clone.attr("data-current-package", "true");
-          currentlyActivePackage = product;
+        clone.attr("data-current-package", "true");
+        currentlyActivePackage = product;
 
-          // Show Subscription Status
-          clone.css("z-index", (stripeProducts.products?.length ?? 0) + 10);
-          const statusBadge = clone.find(".package-offering-status-badge");
-          const { string, badge } = convertStripeStatus(
-            continuityAccess.stripe.status,
-          );
-
+        // Show subscription status whenever we have one.
+        clone.css("z-index", sortedProducts.length + 10);
+        const statusBadge = clone.find(".package-offering-status-badge");
+        if (currentStripeStatus) {
+          const { string, badge } = convertStripeStatus(currentStripeStatus);
           applyTextBindings(statusBadge, {
             status: string,
           });
@@ -131,7 +125,7 @@ function renderData() {
       const $card = $(offeringsCard);
       const price = Number($card.attr("data-price-amount"));
       const currentlyActivePackagePrice =
-        continuityAccess && currentlyActivePackage
+        currentlyActivePackage
           ? stripePriceToEuroFormat(
               currentlyActivePackage?.default_price?.unit_amount ?? 0,
             )
@@ -178,9 +172,6 @@ $(".package-offering-info-button-wrapper")
   .off("click.changePackage")
   .on("click.changePackage", function () {
     const $wrapper = $(this);
-    const isDowngrade = $wrapper.attr("data-is-downgrade") === "true";
-    const isUpgrade = $wrapper.attr("data-is-upgrade") === "true";
-    if (!isDowngrade && !isUpgrade) return;
 
     const $card = $wrapper.closest(".package-offering");
     const newPackageName = $card
@@ -189,7 +180,20 @@ $(".package-offering-info-button-wrapper")
       .text()
       .trim();
     const productEntry = PRODUCTS[newPackageName];
-    console.log(productEntry);
+
+    if (continuityAccess?.hasAccess) {
+      window.open(portalSession.session.url, "_blank");
+    } else {
+      if (!productEntry?.paymentLink) {
+        renderToast(
+          "Oeps!",
+          "Geen payment link gevonden voor dit pakket.",
+          "negative",
+        );
+        return;
+      }
+      window.open(productEntry.paymentLink, "_blank");
+    }
 
     // ———  old formModal Logic ———
     // const effectiveFrom = currentPeriodEnd

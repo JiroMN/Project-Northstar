@@ -12,7 +12,9 @@ import { applyTextBindings } from "../utils/dataBinding";
 import { getFilePreview } from "../appwrite/storage";
 import { createPortalSession } from "../appwrite/functions";
 
-const continuityAccess = await checkContinuityAccess(false, false, true);
+const continuityState = await checkContinuityAccess(false, false, true);
+const continuityAccess = continuityState?.hasAccess === true;
+const continuityHasSubscription = continuityState?.hasSubscription === true;
 
 if (!continuityAccess) {
   $(".sidebar-nav-button-upgrade-cta").css("display", "flex");
@@ -185,16 +187,17 @@ async function bindDataToInfoCards() {
       data.stripe_customer_id,
       window.location.href,
     );
-    const packageData = continuityAccess ? continuityAccess.package : null;
-    const stripeSubData = continuityAccess ? continuityAccess.stripe : null;
+    const packageData = continuityState?.package ?? null;
+    const stripeSubData = continuityState?.stripe ?? null;
 
     applyTextBindings($(".sidebar-info-card"), {
       "client-info-name": data.name,
       "client-info-partner-since": formatShortDate(data.collab_start),
       "client-info-continuity-package":
-        continuityAccess && packageData.name,
+        continuityHasSubscription && packageData?.name,
       "client-info-billing-period-end":
-        continuityAccess && formatShortDate(stripeSubData.currentPeriodEnd),
+        continuityHasSubscription &&
+        formatShortDate(stripeSubData?.currentPeriodEnd),
     });
 
     // Set images
@@ -204,11 +207,11 @@ async function bindDataToInfoCards() {
       `url(${avatar})`,
     );
     // —— Change bg image
-    if (continuityAccess) {
+    if (continuityHasSubscription) {
       const pkgBadge = $(".continuity-package-badge");
       pkgBadge.css(
         "background-image",
-        `url(${stripeSubData.product.images[0]})`,
+        `url(${stripeSubData?.product?.images?.[0] ?? ""})`,
       );
     }
 

@@ -35,14 +35,20 @@ export async function checkContinuityAccess(
     await account.get();
 
     const data = await getContinuityPackageData();
+    const status = data?.stripe?.status ?? null;
+    const hasSubscription = Boolean(status);
+    const accessAllowedStatuses = ["active", "trialing", "past_due"];
+    const hasAccess = accessAllowedStatuses.includes(status);
 
-    const status = data.stripe.status;
+    console.log(data);
 
-    if (status !== "active") {
+    if (!hasAccess) {
       if (toast) {
         renderToast(
           "Geen Toegang!",
-          "Continuity is niet actief voor dit account.",
+          hasSubscription
+            ? `Continuity status: ${status}.`
+            : "Continuity is niet actief voor dit account.",
           "announcement",
           3000,
         );
@@ -50,19 +56,26 @@ export async function checkContinuityAccess(
       if (redirectToDashboard) {
         window.location.href = `${CONFIG.baseUrl}/?toast_title=Geen toegang!&toast_message=Continuity is niet actief voor dit account.&toast_variant=announcement`;
       }
-      return false;
     }
 
     if (withData) {
-      return data;
+      return {
+        ...data,
+        status,
+        hasSubscription,
+        hasAccess,
+      };
     } else {
-      return true;
+      return hasAccess;
     }
   } catch (err) {
     if (toast) {
       renderToast("Geen toegang", getErrorMessage(err), "negative");
     }
-    window.location.href = `${CONFIG.baseUrl}/login?toast_title=Er is iets mis gegaan!&toast_message=${getErrorMessage(err)}&toast_variant=announcement`;
+    // Keep login redirect for auth/session failures only.
+    if (err?.code === 401 || err?.code === 403 || err?.type?.includes("auth")) {
+      window.location.href = `${CONFIG.baseUrl}/login?toast_title=Er is iets mis gegaan!&toast_message=${getErrorMessage(err)}&toast_variant=announcement`;
+    }
     return false;
   }
 }
