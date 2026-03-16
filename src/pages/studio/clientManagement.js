@@ -15,6 +15,8 @@ import { getErrorMessage } from "../../utils/helpers";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { getAllClients } from "../../appwrite/db";
 
+await checkAuth();
+
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");
 const showDataBtn = $("#showData");

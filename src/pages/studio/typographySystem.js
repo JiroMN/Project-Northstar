@@ -7,6 +7,7 @@ import {
   updateDocument,
 } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
+import { checkAuth } from "../../appwrite/auth";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import {
   gatherFormData,
@@ -24,6 +25,8 @@ import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
 import { UPLOAD_PLAN, WRITE_CONFIG } from "../../config/studio";
 import { removeFile } from "../../appwrite/storage";
+
+await checkAuth();
 
 const submitBtn = $("[id='submitForm']");
 const resetBtn = $("[id='resetForm']");

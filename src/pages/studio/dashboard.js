@@ -6,6 +6,7 @@ import {
   updateDocument,
 } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
+import { checkAuth } from "../../appwrite/auth";
 import {
   gatherFormData,
   onDataChange,
@@ -17,6 +18,8 @@ import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
 import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
+
+await checkAuth();
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");

@@ -18,6 +18,9 @@ import { renderModal } from "../../ui/modal";
 import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
 import { WRITE_CONFIG } from "../../config/studio";
+import { checkAuth } from "../../appwrite/auth";
+
+await checkAuth();
 
 // Webflow duplicates IDs across repeated cards; selecting by attribute ensures we target all matching buttons.
 const submitBtn = $("[id='submitForm']");
