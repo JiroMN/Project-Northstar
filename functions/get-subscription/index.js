@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const stripe = new Stripe(process.env.STRIPE_SECRET_TEST_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// const stripe = new Stripe(process.env.STRIPE_SECRET_TEST_KEY);
 
 function stripeTimestampToISO(timestamp) {
   if (!timestamp || typeof timestamp !== "number") return null;
