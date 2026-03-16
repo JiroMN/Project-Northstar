@@ -25,7 +25,7 @@ const resetBtn = $("[id='resetForm']");
 const showDataBtn = $("[id='showData']");
 
 // Configuration mapping form IDs to database collections and data mapping functions
-const writeCfg = WRITE_CONFIG.brandStory;
+const writeCfg = WRITE_CONFIG.brandEssence;
 
 // Page-level state: initialData is used for prefill/reset, submittedData for the last submit,
 // and selectedClientId is the active client context for all forms on this page.
@@ -162,27 +162,28 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
         setButtonState($(this), "loading", false);
 
         const relatedForm = $(this).attr("data-related-form");
+        const formConfig = writeCfg[relatedForm];
         const form = $(`#${relatedForm}`);
+
+        if (!formConfig) {
+          throw new Error(`Missing write config for form: ${relatedForm}`);
+        }
 
         // Collect current form values; text inputs go to `data`, file inputs to `files`.
         submittedData = gatherFormData(form);
 
         let response;
         // Check if there are any documents already in collection
-        if (initialData[writeCfg[relatedForm].initialDataKey].total >= 1) {
+        if (initialData[formConfig.initialDataKey].total >= 1) {
           console.log("Updating Document");
           // Check initialData to see if a document already exists for this form (update vs create).
-          const doc =
-            initialData[writeCfg[relatedForm].initialDataKey].documents[0];
+          const doc = initialData[formConfig.initialDataKey].documents[0];
           // Update the existing document with the newly submitted form values.
           response = await updateDocument({
             databaseId: APPWRITE.databases.brandEssence.id,
-            collectionId: writeCfg[relatedForm].collectionId,
+            collectionId: formConfig.collectionId,
             documentId: doc.$id,
-            data: writeCfg[relatedForm].mapToDb(
-              submittedData.data,
-              selectedClientId,
-            ),
+            data: formConfig.mapToDb(submittedData.data, selectedClientId),
           });
         } else {
           console.log("Adding document");
@@ -192,11 +193,8 @@ submitBtn.off("click.submit").on("click.submit", function (e) {
 
           response = await createDocument({
             databaseId: APPWRITE.databases.brandEssence.id,
-            collectionId: writeCfg[relatedForm].collectionId,
-            data: writeCfg[relatedForm].mapToDb(
-              submittedData.data,
-              selectedClientId,
-            ),
+            collectionId: formConfig.collectionId,
+            data: formConfig.mapToDb(submittedData.data, selectedClientId),
             permissions: [
               Permission.read(Role.team(teamId)),
               Permission.update(Role.team(teamId)),
@@ -228,10 +226,13 @@ resetBtn.each((__, btn) => {
   // Reset restores the form back to the last fetched state for the currently selected client.
   $btn.off("click.reset").on("click.reset", function () {
     const relatedForm = $(this).attr("data-related-form");
+    const formConfig = writeCfg[relatedForm];
 
-    setInitialData(
-      initialData[writeCfg[relatedForm].initialDataKey],
-      relatedForm,
-    );
+    if (!formConfig) {
+      console.error(`Missing write config for form: ${relatedForm}`);
+      return;
+    }
+
+    setInitialData(initialData[formConfig.initialDataKey], relatedForm);
   });
 });

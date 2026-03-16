@@ -8,6 +8,37 @@ gsap.set($container, { display: "flex", pointerEvents: "none" });
 gsap.set($backdrop, { autoAlpha: 0 });
 gsap.set($modal, { autoAlpha: 0, y: 8, scale: 0.95 });
 
+function closeModal(onComplete) {
+  gsap.killTweensOf([$backdrop, $modal]);
+
+  gsap
+    .timeline({
+      onComplete: () => {
+        $container.css("pointer-events", "none");
+        onComplete?.();
+      },
+    })
+    .fromTo($modal, { autoAlpha: 1, scale: 1, y: 0 }, { autoAlpha: 0, scale: 0.95, y: 8 })
+    .fromTo(
+      $backdrop,
+      { autoAlpha: 1, pointerEvents: "auto" },
+      { autoAlpha: 0, pointerEvents: "none" },
+      "<0.2",
+    );
+}
+
+function openModal() {
+  gsap.killTweensOf([$backdrop, $modal]);
+
+  gsap
+    .timeline({
+      onStart: () => $container.css("pointer-events", "auto"),
+      onComplete: () => gsap.set($backdrop, { pointerEvents: "auto" }),
+    })
+    .fromTo($backdrop, { autoAlpha: 0, pointerEvents: "none" }, { autoAlpha: 1 }, 0)
+    .fromTo($modal, { autoAlpha: 0, scale: 0.95, y: 8 }, { autoAlpha: 1, scale: 1, y: 0 }, "<0.2");
+}
+
 export function renderModal(heading, body, cancelText, confirmText, fn) {
   const confirmButton = $modal
     .find(".button-md")
@@ -18,6 +49,8 @@ export function renderModal(heading, body, cancelText, confirmText, fn) {
 
   if (cancelText == "") {
     cancelButton.css("display", "none");
+  } else {
+    cancelButton.css("display", "");
   }
 
   applyTextBindings($(".modal"), {
@@ -27,15 +60,7 @@ export function renderModal(heading, body, cancelText, confirmText, fn) {
     "modal-secondary-button": cancelText,
   });
 
-  let tl = gsap
-    .timeline({
-      paused: true,
-      onComplete: () => gsap.set($backdrop, { pointerEvents: "auto" }),
-    })
-    .to($backdrop, { autoAlpha: 1 })
-    .to($modal, { autoAlpha: 1, scale: 1 }, "<0.2");
-
-  tl.play();
+  openModal();
 
   // Prevent stacking listeners when renderModal() is called multiple times
   $(confirmButton).off("click.modalConfirm");
@@ -43,19 +68,11 @@ export function renderModal(heading, body, cancelText, confirmText, fn) {
 
   $(confirmButton).on("click.modalConfirm", function (e) {
     e.preventDefault();
-    gsap
-      .timeline()
-      .to($modal, { autoAlpha: 0, scale: 0.95 })
-      .to($backdrop, { autoAlpha: 0, pointerEvents: "none" }, "<0.2");
-
-    fn?.();
+    closeModal(fn);
   });
 
   $(cancelButton).on("click.modalCancel", function (e) {
     e.preventDefault();
-    gsap
-      .timeline()
-      .to($modal, { autoAlpha: 0, scale: 0.95 })
-      .to($backdrop, { autoAlpha: 0, pointerEvents: "none" }, "<0.2");
+    closeModal();
   });
 }

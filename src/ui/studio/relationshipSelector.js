@@ -9,18 +9,15 @@ import { onClientSelect } from "../../utils/studioHelpers";
 const relationshipSelector = $(".relationship-input");
 const relationshipSelectorList = $(".relationship-input-list");
 const listItemTemplate = $("#relationshipListItemTemplate").detach();
-let relationShipAmount = 0;
+const RELATIONSHIP_BASE_Z_INDEX = 10;
+let highestRelationshipZIndex = RELATIONSHIP_BASE_Z_INDEX;
 
 gsap.set(relationshipSelectorList, { display: "flex", autoAlpha: 0 });
 
 relationshipSelector.each(async (index, relationshipSelector) => {
   const $relationshipSelector = $(relationshipSelector);
   const $container = $relationshipSelector.parent();
-  relationShipAmount++;
-  /* Z-Index Styling fix */
-  const currentZ = $container.css("z-index");
-  $container.css("z-index", currentZ - parseInt(relationShipAmount));
-  /* Z-Index Styling fix */
+  $container.css("z-index", RELATIONSHIP_BASE_Z_INDEX);
   const $input = $container.find("input");
   const $list = $container.find(".relationship-input-list");
   let $listItems = $container.find(".relationship-input-list-item");
@@ -81,7 +78,7 @@ relationshipSelector.each(async (index, relationshipSelector) => {
     }
   });
 
-  function renderOptions(res) {
+function renderOptions(res) {
     $list.html("");
 
     let message =
@@ -98,7 +95,18 @@ relationshipSelector.each(async (index, relationshipSelector) => {
     }
 
     $(res.documents).each((__, doc) => {
-      const listItemClone = listItemTemplate.clone(true);
+      const fallbackLabel =
+        doc?.[relRegistryItem.labelKey] ?? doc?.title ?? doc?.name ?? doc?.$id;
+      let listItemClone = listItemTemplate.clone(true);
+
+      if (!listItemClone.length) {
+        listItemClone = $(`
+          <div class="relationship-input-list-item">
+            <div class="sm weight-regular fg-inherit truncate-2" data-bind="label"></div>
+            <div class="sm weight-regular fg-inherit" data-bind="id"></div>
+          </div>
+        `);
+      }
 
       listItemClone
         .attr("id", "")
@@ -106,9 +114,13 @@ relationshipSelector.each(async (index, relationshipSelector) => {
         .attr("data-document-id", doc.$id);
       listItemClone.appendTo($list);
       applyTextBindings(listItemClone, {
-        label: doc[relRegistryItem.labelKey],
+        label: fallbackLabel,
         id: doc.$id,
       });
+
+      if (!listItemClone.find("[data-bind='label']").length) {
+        listItemClone.text(fallbackLabel);
+      }
     });
 
     $listItems = $container.find(".relationship-input-list-item");
@@ -153,6 +165,10 @@ relationshipSelector.each(async (index, relationshipSelector) => {
   function toggleOptions() {
     const isDisabled = $relationshipSelector.attr("data-disabled");
     if (isDisabled) return;
+
+    highestRelationshipZIndex += 1;
+    $container.css("z-index", highestRelationshipZIndex);
+
     // Re-select list items because they are created async
     $listItems = $container.find(".relationship-input-list-item");
 
