@@ -1,8 +1,11 @@
 import { Query } from "appwrite";
 import { getCollection } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
+import { checkAuth } from "../../appwrite/auth";
 import { openPreviewSheet } from "../../ui/studio/previewSheet";
 import { gatherFormData } from "../../utils/studioHelpers";
+
+await checkAuth();
 
 const submitBtn = $("#submitForm");
 const resetBtn = $("#resetForm");

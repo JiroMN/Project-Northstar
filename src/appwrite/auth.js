@@ -5,10 +5,41 @@ import { getCollection, getContinuityPackageData } from "./db";
 import { renderToast } from "../ui/toast";
 import { getErrorMessage } from "../utils/helpers";
 
+function isStudioRoute() {
+  return window.location.pathname.startsWith("/studio");
+}
+
+async function hasBrandDirectorAccess(userId) {
+  const teamResponse = await teams.list();
+
+  for (const team of teamResponse.teams ?? []) {
+    const memberships = await teams.listMemberships(team.$id, [
+      Query.equal("userId", userId),
+    ]);
+
+    const matchingMembership = memberships.memberships?.find((membership) =>
+      Array.isArray(membership.roles)
+        ? membership.roles.includes("Brand_Director")
+        : false,
+    );
+
+    if (matchingMembership) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export async function checkAuth() {
   try {
     const response = await account.get();
     if (response) {
+      if (isStudioRoute() && !(await hasBrandDirectorAccess(response.$id))) {
+        window.location.href = `${CONFIG.baseUrl}/`;
+        return false;
+      }
+
       // renderToast(
       //   "Logged In!",
       //   "Welcome to TheBrand.Book",
@@ -39,8 +70,6 @@ export async function checkContinuityAccess(
     const hasSubscription = Boolean(status);
     const accessAllowedStatuses = ["active", "trialing", "past_due"];
     const hasAccess = accessAllowedStatuses.includes(status);
-
-    console.log(data);
 
     if (!hasAccess) {
       if (toast) {

@@ -6,6 +6,7 @@ import {
   updateDocument,
 } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
+import { checkAuth } from "../../appwrite/auth";
 import {
   gatherFormData,
   getUploadTargetsFromForm,
@@ -21,6 +22,8 @@ import { getErrorMessage } from "../../utils/helpers";
 import { setButtonState } from "../../animations/global/buttons";
 import { WRITE_CONFIG, UPLOAD_PLAN } from "../../config/studio";
 import { removeFile } from "../../appwrite/storage";
+
+await checkAuth();
 
 // Webflow duplicates IDs across repeated cards; selecting by attribute ensures we target all matching buttons.
 const submitBtn = $("[id='submitForm']");
