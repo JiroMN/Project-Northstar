@@ -124,12 +124,11 @@ function renderData() {
     renderedOfferings.not(template).each((__, offeringsCard) => {
       const $card = $(offeringsCard);
       const price = Number($card.attr("data-price-amount"));
-      const currentlyActivePackagePrice =
-        currentlyActivePackage
-          ? stripePriceToEuroFormat(
-              currentlyActivePackage?.default_price?.unit_amount ?? 0,
-            )
-          : null;
+      const currentlyActivePackagePrice = currentlyActivePackage
+        ? stripePriceToEuroFormat(
+            currentlyActivePackage?.default_price?.unit_amount ?? 0,
+          )
+        : null;
       let text = "Selecteer";
       const isDowngrade =
         currentlyActivePackagePrice !== null &&

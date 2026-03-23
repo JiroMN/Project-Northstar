@@ -106,10 +106,12 @@ export async function removeUser(userId) {
   }
 }
 
-export async function getAllStripeProducts() {
+export async function getAllStripeProducts(allowedProductTypes = []) {
   try {
     const execution = await functions.createExecution(
       APPWRITE.functions.getStripeProducts,
+      JSON.stringify({ allowedProductTypes }),
+      false,
     );
     const data = execution.responseBody && JSON.parse(execution.responseBody);
 
