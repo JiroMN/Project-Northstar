@@ -3,6 +3,7 @@ import {
   createDocument,
   getClientById,
   getCollection,
+  getAllClients,
   updateDocument,
 } from "../../appwrite/db";
 import APPWRITE from "../../config/public";
@@ -16,13 +17,154 @@ import {
   setFormData,
   triggerDataChange,
 } from "../../utils/studioHelpers";
+import { getSubscriptionFromStripe } from "../../appwrite/functions";
+import { getFilePreview } from "../../appwrite/storage";
 import { renderToast } from "../../ui/toast";
 import { renderModal } from "../../ui/modal";
-import { getErrorMessage } from "../../utils/helpers";
+import { getErrorMessage, isBetweenDates } from "../../utils/helpers";
+import { applyTextBindings } from "../../utils/dataBinding";
 import { setButtonState } from "../../animations/global/buttons";
 import { WRITE_CONFIG } from "../../config/studio";
 
 await checkAuth();
+
+// Continuity Overview
+const $overviewContainer = $("[data-continuity-clients-overview]");
+const $overviewTemplate = $("#continuityPackageClientTemplate");
+
+$overviewTemplate.css("display", "none");
+
+async function renderContinuityOverview() {
+  try {
+    const allClients = await getAllClients();
+    const clients = allClients.database ?? [];
+
+    const results = await Promise.all(
+      clients.map(async (client) => {
+        if (!client.stripe_customer_id) return null;
+        try {
+          const stripeResponse = await getSubscriptionFromStripe(
+            client.stripe_customer_id,
+          );
+          if (!stripeResponse?.ok || !stripeResponse?.subscription) return null;
+
+          const stripe = stripeResponse.subscription;
+          const eligibleStatuses = ["active", "trialing", "past_due"];
+          if (!eligibleStatuses.includes(stripe?.status)) return null;
+
+          const metadata = stripe?.product?.metadata ?? {};
+          const totalHours = Number(metadata.total_hours ?? 0);
+          const reservedConsultingHours = Number(
+            metadata.reserved_consulting_hours ?? 0,
+          );
+          const totalFreeHours = totalHours - reservedConsultingHours;
+
+          const timelogsRes = await getCollection(
+            APPWRITE.databases.continuity.id,
+            APPWRITE.databases.continuity.collections.timelogs.id,
+            [Query.equal("client_id", client.$id), Query.limit(9999)],
+          );
+
+          let spentHours = 0;
+          let spentConsultingHours = 0;
+
+          for (const log of timelogsRes?.documents ?? []) {
+            const hours = parseFloat(log?.hours ?? 0);
+            if (
+              isBetweenDates(
+                log?.date,
+                stripe.currentPeriodStart,
+                stripe.currentPeriodEnd,
+              )
+            ) {
+              if (log?.isReservedConsultingSessions) {
+                spentConsultingHours += hours;
+              } else {
+                spentHours += hours;
+              }
+            }
+          }
+
+          return {
+            client,
+            spentHours,
+            spentConsultingHours,
+            totalHours,
+            totalFreeHours,
+            reservedConsultingHours,
+          };
+        } catch (err) {
+          console.error(
+            `[continuityOverview] Failed for client ${client.$id}:`,
+            err,
+          );
+          return null;
+        }
+      }),
+    );
+
+    for (const entry of results.filter(Boolean)) {
+      const $card = $overviewTemplate.clone(true);
+      $card.attr("id", "").css("display", "flex");
+
+      applyTextBindings($card, {
+        "client-name": entry.client.name,
+        "spent-reserved-hours": entry.spentConsultingHours,
+        "total-reserved-hours": entry.reservedConsultingHours,
+        "spent-free-hours": entry.spentHours,
+        "total-free-hours": entry.totalFreeHours,
+      });
+
+      $card.appendTo($overviewContainer);
+
+      const avatar = await getFilePreview(
+        APPWRITE.buckets.clientFiles.id,
+        entry.client.avatar_file_id,
+      );
+      $card.find(".continuity-package-client-avatar").css(
+        "backgroundImage",
+        `url(${avatar})`,
+      );
+
+      const $sections = $card.find(".continuity-package-client-progress-section");
+      const $bars = $card.find(".continuity-package-client-progress-inner");
+
+      const reservedSectionPct =
+        entry.totalHours > 0
+          ? (entry.reservedConsultingHours / entry.totalHours) * 100
+          : 0;
+      const reservedPct =
+        entry.reservedConsultingHours > 0
+          ? (entry.spentConsultingHours / entry.reservedConsultingHours) * 100
+          : 0;
+      const freePct =
+        entry.totalFreeHours > 0
+          ? (entry.spentHours / entry.totalFreeHours) * 100
+          : 0;
+
+      gsap.to($sections.eq(0), {
+        width: `${reservedSectionPct}%`,
+        duration: 0.8,
+        ease: "power2.out",
+      });
+      gsap.to($bars.eq(0), {
+        width: `${Math.min(reservedPct, 100)}%`,
+        duration: 0.8,
+        ease: "power2.out",
+      });
+      gsap.to($bars.eq(1), {
+        width: `${Math.min(freePct, 100)}%`,
+        duration: 0.8,
+        ease: "power2.out",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    renderToast("Oeps!", getErrorMessage(err), "negative");
+  }
+}
+
+await renderContinuityOverview();
 
 const submitBtn = $("[id='submitForm']");
 const resetBtn = $("[id='resetForm']");
